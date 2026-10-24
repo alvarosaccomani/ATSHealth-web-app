@@ -1,9 +1,12 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
-  imports: [],
   selector: 'app-toast',
-  styleUrl: './toast.component.scss',
+  imports: [],
   templateUrl: './toast.component.html',
+  styleUrl: './toast.component.scss',
 })
-export class ToastComponent {}
+export class ToastComponent {
+  protected readonly toastService = inject(ToastService);
+}
