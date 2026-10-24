@@ -59,6 +59,9 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
+          "options": {
+            "port": 4207
+          },
           "configurations": {
             "production": {
               "buildTarget": "ATSHealth-web-app:build:production"
