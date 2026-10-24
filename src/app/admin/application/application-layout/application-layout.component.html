@@ -7,6 +7,8 @@
       <app-stage-1-anamnesis [sex]="activeSex()" (nextStage)="activeStage.set($event)" />
     } @else if (activeStage() === 2) {
       <app-stage-2-physical-exam (prevStage)="activeStage.set($event)" (nextStage)="activeStage.set($event)" />
+    } @else if (activeStage() === 3) {
+      <app-stage-3-treatment-plan (prevStage)="activeStage.set($event)" (nextStage)="activeStage.set($event)" />
     }
     <router-outlet />
   </main>
