@@ -3,10 +3,12 @@ import {
   Component,
   ElementRef,
   OnDestroy,
+  inject,
   output,
   signal,
   viewChild,
 } from '@angular/core';
+import { ToastService } from '../../../../core/services/toast.service';
 
 declare const Chart: any;
 
@@ -174,8 +176,11 @@ export class Stage4EvolutionComponent implements AfterViewInit, OnDestroy {
     this.prevStage.emit(3);
   }
 
+  private readonly toast = inject(ToastService);
+
   finishConsultation(): void {
     this.isCompleted.set(true);
+    this.toast.success('Consulta clínica cerrada y firmada digitalmente');
     this.completeConsultation.emit();
   }
 }
