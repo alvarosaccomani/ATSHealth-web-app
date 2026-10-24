@@ -1,1 +1,77 @@
-<p>stage-bar works!</p>
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 w-full">
+  <nav aria-label="Etapas de Historia Clínica" class="grid grid-cols-2 md:grid-cols-4 gap-2.5 bg-white dark:bg-darkBg-800 p-2 rounded-2xl border border-slate-200 dark:border-darkBg-700 shadow-xs transition-colors">
+    @for (stage of stages; track stage.id) {
+      <button 
+        type="button" 
+        (click)="selectStage(stage.id)"
+        class="step-btn flex items-center gap-2.5 p-2.5 rounded-xl transition-all text-left cursor-pointer"
+        [class.bg-blue-600]="stage.id === currentStage()"
+        [class.dark:bg-blue-600]="stage.id === currentStage()"
+        [class.text-white]="stage.id === currentStage()"
+        [class.font-bold]="stage.id === currentStage()"
+        [class.shadow-md]="stage.id === currentStage()"
+        [class.shadow-blue-500/30]="stage.id === currentStage()"
+        [class.border-blue-500]="stage.id === currentStage()"
+        [class.dark:border-blue-400]="stage.id === currentStage()"
+        [class.ring-2]="stage.id === currentStage()"
+        [class.ring-blue-400/50]="stage.id === currentStage()"
+
+        [class.bg-slate-50]="stage.id < currentStage()"
+        [class.dark:bg-darkBg-750]="stage.id < currentStage()"
+        [class.text-slate-700]="stage.id < currentStage()"
+        [class.dark:text-slate-300]="stage.id < currentStage()"
+        [class.border-slate-200]="stage.id < currentStage()"
+        [class.dark:border-darkBg-700]="stage.id < currentStage()"
+        [class.hover:bg-slate-100]="stage.id < currentStage()"
+        [class.dark:hover:bg-darkBg-700]="stage.id < currentStage()"
+
+        [class.text-slate-400]="stage.id > currentStage()"
+        [class.dark:text-slate-500]="stage.id > currentStage()"
+        [class.hover:text-slate-700]="stage.id > currentStage()"
+        [class.dark:hover:text-slate-300]="stage.id > currentStage()"
+        [class.hover:bg-slate-50]="stage.id > currentStage()"
+        [class.dark:hover:bg-darkBg-750]="stage.id > currentStage()"
+        [class.border-transparent]="stage.id > currentStage()">
+        
+        <!-- Icono / Número / Check -->
+        @if (stage.id === currentStage()) {
+          <span class="w-7 h-7 rounded-lg bg-white text-blue-700 flex items-center justify-center text-xs font-black shadow-xs shrink-0">
+            {{ stage.id }}
+          </span>
+        } @else if (stage.id < currentStage()) {
+          <span class="w-7 h-7 rounded-lg bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shrink-0">
+            <i class="fa-solid fa-check text-[11px]"></i>
+          </span>
+        } @else {
+          <span class="w-7 h-7 rounded-lg bg-slate-200 dark:bg-darkBg-700 text-slate-600 dark:text-slate-400 flex items-center justify-center text-xs font-bold shrink-0">
+            {{ stage.id }}
+          </span>
+        }
+
+        <div class="truncate">
+          <span 
+            class="block text-[10px] uppercase tracking-wider font-bold"
+            [class.text-blue-100]="stage.id === currentStage()"
+            [class.text-emerald-600]="stage.id < currentStage()"
+            [class.dark:text-emerald-400]="stage.id < currentStage()"
+            [class.text-slate-400]="stage.id > currentStage()"
+            [class.dark:text-slate-500]="stage.id > currentStage()">
+            {{ stage.tag }}
+          </span>
+          <span 
+            class="text-xs truncate block"
+            [class.font-extrabold]="stage.id === currentStage()"
+            [class.text-white]="stage.id === currentStage()"
+            [class.font-semibold]="stage.id < currentStage()"
+            [class.text-slate-700]="stage.id < currentStage()"
+            [class.dark:text-slate-200]="stage.id < currentStage()"
+            [class.font-medium]="stage.id > currentStage()"
+            [class.text-slate-500]="stage.id > currentStage()"
+            [class.dark:text-slate-400]="stage.id > currentStage()">
+            {{ stage.label }}
+          </span>
+        </div>
+      </button>
+    }
+  </nav>
+</section>
