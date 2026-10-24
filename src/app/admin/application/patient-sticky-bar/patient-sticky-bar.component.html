@@ -1,1 +1,149 @@
-<p>patient-sticky-bar works!</p>
+<section class="sticky top-16 z-30 bg-slate-100/95 dark:bg-darkBg-900/95 backdrop-blur-md py-2.5 border-b border-slate-200/80 dark:border-darkBg-700/80 shadow-xs transition-all w-full">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+    <div 
+      class="bg-white dark:bg-darkBg-800 rounded-2xl border border-slate-200 dark:border-darkBg-700 shadow-xs transition-all"
+      [class.p-2.5]="isCompact()"
+      [class.sm:p-3]="isCompact()"
+      [class.p-4]="!isCompact()"
+      [class.sm:p-5]="!isCompact()">
+      
+      <!-- VISTA COMPACTA AL SCROLLEAR -->
+      @if (isCompact()) {
+        <div class="flex items-center justify-between text-sm py-0.5 transition-all animate-fadeIn">
+          <div class="flex items-center space-x-6 sm:space-x-8 flex-wrap gap-y-2">
+            <!-- Paciente Activo -->
+            <div>
+              <p class="text-xs text-slate-400 dark:text-slate-400 font-medium leading-none mb-1">Paciente Activo</p>
+              <p class="font-semibold text-slate-800 dark:text-white text-sm">{{ patientName() }} ({{ age() }}a)</p>
+            </div>
+            <!-- Rama / Protocolo -->
+            <div>
+              <p class="text-xs text-slate-400 dark:text-slate-400 font-medium leading-none mb-1">Rama / Protocolo</p>
+              @if (sex() === 'femenino') {
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-bold bg-pink-100 text-pink-800 dark:bg-pink-950/70 dark:text-pink-300 border border-pink-200 dark:border-pink-800">
+                  <i class="fa-solid fa-venus text-[11px]"></i> Gineco-Obstétrico
+                </span>
+              } @else {
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-bold bg-blue-100 text-blue-800 dark:bg-blue-950/70 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                  <i class="fa-solid fa-mars text-[11px]"></i> Urológico / Masculino
+                </span>
+              }
+            </div>
+            <!-- Estado Ficha -->
+            <div class="hidden sm:block">
+              <p class="text-xs text-slate-400 dark:text-slate-400 font-medium leading-none mb-1">Estado Ficha</p>
+              <span class="inline-flex items-center text-xs font-medium text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/80 px-2 py-0.5 rounded">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span> Consulta Activa
+              </span>
+            </div>
+          </div>
+
+          <!-- Botón Expandir / Editar -->
+          <button 
+            type="button" 
+            (click)="toggleExpansion()" 
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-darkBg-750 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-darkBg-700 border border-slate-200 dark:border-darkBg-700 transition-all cursor-pointer">
+            <i class="fa-solid fa-pen-to-square text-[11px] text-brand-600 dark:text-brand-400"></i>
+            <span>{{ isManuallyExpanded() ? 'Contraer' : 'Editar / Expandir' }}</span>
+            <i class="fa-solid text-[10px] ml-0.5" [class.fa-chevron-up]="isManuallyExpanded()" [class.fa-chevron-down]="!isManuallyExpanded()"></i>
+          </button>
+        </div>
+      } @else {
+        <!-- VISTA COMPLETA (EXPANDIDA) -->
+        <div class="space-y-3.5 transition-all animate-fadeIn">
+          <div class="flex flex-col md:flex-row md:items-center justify-between pb-3.5 border-b border-slate-100 dark:border-darkBg-700 gap-4">
+            
+            <div class="flex items-center gap-3">
+              <div class="w-11 h-11 rounded-2xl bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800/60 text-brand-600 dark:text-brand-300 flex items-center justify-center text-lg shrink-0">
+                <i class="fa-solid fa-user-circle"></i>
+              </div>
+              <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <input 
+                    type="text" 
+                    [value]="patientName()" 
+                    (input)="onNameInput($event)"
+                    class="font-bold text-slate-900 dark:text-white text-base bg-transparent border-b border-dashed border-slate-300 dark:border-darkBg-700 focus:border-brand-500 focus:outline-none pb-0.5">
+                  <span class="text-xs px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-darkBg-700 font-semibold text-slate-600 dark:text-slate-300">{{ age() }} años</span>
+                  <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-medium">HC: {{ historyNumber() }}</span>
+                </div>
+                <p class="text-xs text-slate-400 dark:text-slate-400 mt-0.5">DNI: {{ dni() }} • OS/Prepaga: {{ healthInsurance() }} • Profesional: {{ professional() }}</p>
+              </div>
+            </div>
+
+            <!-- Selector Biológico y Fecha -->
+            <div class="flex flex-wrap items-center gap-3 text-xs">
+              <div>
+                <label class="block font-semibold text-slate-500 dark:text-slate-400 mb-1">Sexo Biológico</label>
+                <div class="flex items-center bg-slate-100 dark:bg-darkBg-900 p-1 rounded-xl border border-slate-200 dark:border-darkBg-700 self-start md:self-auto">
+                  <button 
+                    type="button" 
+                    (click)="setBiologicalGender('femenino')"
+                    [class]="sex() === 'femenino' 
+                      ? 'flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all bg-white dark:bg-darkBg-750 text-pink-700 dark:text-pink-300 shadow-xs border border-pink-200 dark:border-pink-800 cursor-pointer'
+                      : 'flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all border border-transparent cursor-pointer'">
+                    <i class="fa-solid fa-venus text-pink-600 dark:text-pink-400"></i>
+                    <span>Femenino (Gineco-Obst.)</span>
+                  </button>
+                  <button 
+                    type="button" 
+                    (click)="setBiologicalGender('masculino')"
+                    [class]="sex() === 'masculino' 
+                      ? 'flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all bg-white dark:bg-darkBg-750 text-blue-700 dark:text-blue-300 shadow-xs border border-blue-200 dark:border-blue-800 cursor-pointer'
+                      : 'flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all border border-transparent cursor-pointer'">
+                    <i class="fa-solid fa-mars text-blue-600 dark:text-blue-400"></i>
+                    <span>Masculino (Urología / Andrología)</span>
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-500 dark:text-slate-400 mb-1">Fecha de Consulta</label>
+                <input 
+                  type="date" 
+                  [value]="consultDate()" 
+                  (input)="consultDate.set($any($event.target).value)"
+                  class="px-3 py-2 rounded-xl border border-slate-200 dark:border-darkBg-700 bg-slate-50 dark:bg-darkBg-750 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Motivo de consulta y objetivos -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5 pt-1 text-xs">
+            <div>
+              <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                <i class="fa-solid fa-stethoscope text-brand-600 mr-1"></i> Motivo Principal de Consulta
+              </label>
+              <input 
+                type="text" 
+                [value]="consultReason()" 
+                (input)="consultReason.set($any($event.target).value)"
+                class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-darkBg-700 bg-slate-50/70 dark:bg-darkBg-750 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                <i class="fa-solid fa-briefcase text-teal-600 mr-1"></i> Ocupación & Carga Física
+              </label>
+              <input 
+                type="text" 
+                [value]="consultJob()" 
+                (input)="consultJob.set($any($event.target).value)"
+                class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-darkBg-700 bg-slate-50/70 dark:bg-darkBg-750 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                <i class="fa-solid fa-bullseye text-purple-600 mr-1"></i> Expectativa / Objetivo del Paciente
+              </label>
+              <input 
+                type="text" 
+                [value]="consultGoal()" 
+                (input)="consultGoal.set($any($event.target).value)"
+                class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-darkBg-700 bg-slate-50/70 dark:bg-darkBg-750 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+            </div>
+          </div>
+        </div>
+      }
+
+    </div>
+  </div>
+</section>
