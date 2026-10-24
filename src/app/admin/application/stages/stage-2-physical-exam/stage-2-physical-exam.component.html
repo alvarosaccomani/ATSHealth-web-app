@@ -1,1 +1,241 @@
-<p>stage-2-physical-exam works!</p>
+<div class="space-y-6">
+  
+  <!-- Card A: Evaluación Abdominopélvica & Diafragma -->
+  <div class="bg-white dark:bg-darkBg-800 rounded-2xl p-6 border border-slate-200 dark:border-darkBg-700 shadow-xs transition-colors space-y-4">
+    <div class="flex items-center gap-3 pb-3 border-b border-slate-100 dark:border-darkBg-700">
+      <span class="w-8 h-8 rounded-lg bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 flex items-center justify-center text-sm">
+        <i class="fa-solid fa-child-reaching"></i>
+      </span>
+      <div>
+        <h2 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Evaluación Postural, Diafragmática & Competencia Abdominal</h2>
+        <p class="text-xs text-slate-500 dark:text-slate-400">Sinergias, diástasis de rectos y respuesta refleja a la tos (Valsalva).</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+      <div>
+        <label class="block text-slate-500 dark:text-slate-400 mb-1">Patrón Respiratorio & Diafragma</label>
+        <select class="w-full p-2 border border-slate-200 dark:border-darkBg-700 rounded-lg bg-white dark:bg-darkBg-750">
+          <option selected>Bloqueo inspiratorio / Hipertonía diafragmática</option>
+          <option>Patrón diafragmático fisiológico sinergia normal</option>
+          <option>Respiración paradojal / costal alta exclusiva</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-slate-500 dark:text-slate-400 mb-1">Diástasis de Rectos Abdominales</label>
+        <input type="text" value="2.5 cm supraumbilical / 1.8 cm infraumbilical (blandura de línea alba)" class="w-full p-2 border border-slate-200 dark:border-darkBg-700 rounded-lg bg-white dark:bg-darkBg-750 font-semibold">
+      </div>
+      <div>
+        <label class="block text-slate-500 dark:text-slate-400 mb-1">Maniobra de Valsalva / Tos</label>
+        <select class="w-full p-2 border border-slate-200 dark:border-darkBg-700 rounded-lg bg-white dark:bg-darkBg-750 font-semibold text-rose-600 dark:text-rose-400">
+          <option selected>Incompetente (abombamiento perineal y escape visible)</option>
+          <option>Competente con pre-contracción refleja de cierre (The Knack)</option>
+          <option>Inversión de comando (empuje voluntario en lugar de cierre)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card B: Evaluación Manual Intracavitaria - Escala de Oxford & PERFECT -->
+  <div class="bg-white dark:bg-darkBg-800 rounded-2xl p-6 border border-slate-200 dark:border-darkBg-700 shadow-xs transition-colors space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 dark:border-darkBg-700 gap-3">
+      <div class="flex items-center gap-3">
+        <span class="w-8 h-8 rounded-lg bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 flex items-center justify-center text-sm">
+          <i class="fa-solid fa-hand-holding-medical"></i>
+        </span>
+        <div>
+          <h2 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Palpación Intracavitaria & Esquema PERFECT (Laycock)</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Graduación internacional de fuerza, resistencia y fatiga muscular.</p>
+        </div>
+      </div>
+      <span class="text-xs px-3 py-1 rounded-full bg-slate-100 dark:bg-darkBg-700 text-slate-700 dark:text-slate-300 font-bold">
+        Posición: Litotomía relajada
+      </span>
+    </div>
+
+    <!-- Escala Oxford Modificada (0 al 5) interactiva -->
+    <div>
+      <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
+        Fuerza Muscular Basal (Escala de Oxford 0 a 5)
+      </label>
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 text-xs">
+        @for (item of oxfordGrades; track item.grade) {
+          <div 
+            (click)="selectOxfordGrade(item.grade)" 
+            class="p-2.5 rounded-xl text-center cursor-pointer transition-all"
+            [class.border-2]="oxfordGrade() === item.grade"
+            [class.border-brand-500]="oxfordGrade() === item.grade"
+            [class.bg-brand-50/60]="oxfordGrade() === item.grade"
+            [class.dark:bg-teal-950/60]="oxfordGrade() === item.grade"
+            [class.shadow-xs]="oxfordGrade() === item.grade"
+            [class.border]="oxfordGrade() !== item.grade"
+            [class.border-slate-200]="oxfordGrade() !== item.grade"
+            [class.dark:border-darkBg-700]="oxfordGrade() !== item.grade"
+            [class.hover:border-brand-400]="oxfordGrade() !== item.grade">
+            <span 
+              class="font-bold block"
+              [class.text-teal-800]="oxfordGrade() === item.grade"
+              [class.dark:text-teal-300]="oxfordGrade() === item.grade"
+              [class.text-slate-700]="oxfordGrade() !== item.grade"
+              [class.dark:text-slate-300]="oxfordGrade() !== item.grade">
+              {{ item.label }} {{ oxfordGrade() === item.grade ? '(Actual)' : '' }}
+            </span>
+            <span 
+              class="text-[10px] block mt-1"
+              [class.font-semibold]="oxfordGrade() === item.grade"
+              [class.text-teal-700]="oxfordGrade() === item.grade"
+              [class.dark:text-teal-400]="oxfordGrade() === item.grade"
+              [class.text-slate-400]="oxfordGrade() !== item.grade">
+              {{ item.desc }}
+            </span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Cuadrícula PERFECT -->
+    <div class="p-5 rounded-2xl bg-slate-50 dark:bg-darkBg-750 border border-slate-200 dark:border-darkBg-700">
+      <h3 class="font-bold text-xs uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+        <i class="fa-solid fa-list-ol text-brand-600"></i> Desglose del Esquema P-E-R-F-ECT
+      </h3>
+      
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+        <div>
+          <span class="block text-slate-500 dark:text-slate-400 font-semibold mb-1">P - Power (Fuerza Oxford)</span>
+          <div class="flex items-center">
+            <input 
+              type="number" 
+              [value]="perfectP()" 
+              (input)="perfectP.set(+$any($event.target).value)" 
+              min="0" 
+              max="5" 
+              class="w-full p-2 border border-slate-200 dark:border-darkBg-700 rounded-lg bg-white dark:bg-darkBg-800 font-bold text-brand-600">
+            <span class="text-xs text-slate-400 ml-1.5">/5</span>
+          </div>
+        </div>
+
+        <div>
+          <span class="block text-slate-500 dark:text-slate-400 font-semibold mb-1">E - Endurance (Resistencia)</span>
+          <div class="flex items-center">
+            <input 
+              type="number" 
+              [value]="perfectE()" 
+              (input)="perfectE.set(+$any($event.target).value)" 
+              min="0" 
+              max="10" 
+              class="w-full p-2 border border-slate-200 dark:border-darkBg-700 rounded-lg bg-white dark:bg-darkBg-800 font-bold text-teal-600">
+            <span class="text-xs text-slate-400 ml-1.5">seg</span>
+          </div>
+        </div>
+
+        <div>
+          <span class="block text-slate-500 dark:text-slate-400 font-semibold mb-1">R - Repetitions (Repeticiones)</span>
+          <div class="flex items-center">
+            <input 
+              type="number" 
+              [value]="perfectR()" 
+              (input)="perfectR.set(+$any($event.target).value)" 
+              min="0" 
+              max="10" 
+              class="w-full p-2 border border-slate-200 dark:border-darkBg-700 rounded-lg bg-white dark:bg-darkBg-800 font-bold text-blue-600">
+            <span class="text-xs text-slate-400 ml-1.5">veces</span>
+          </div>
+        </div>
+
+        <div>
+          <span class="block text-slate-500 dark:text-slate-400 font-semibold mb-1">F - Fast (Contracc. Rápidas)</span>
+          <div class="flex items-center">
+            <input 
+              type="number" 
+              [value]="perfectF()" 
+              (input)="perfectF.set(+$any($event.target).value)" 
+              min="0" 
+              max="10" 
+              class="w-full p-2 border border-slate-200 dark:border-darkBg-700 rounded-lg bg-white dark:bg-darkBg-800 font-bold text-purple-600">
+            <span class="text-xs text-slate-400 ml-1.5">veces</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-3 pt-3 border-t border-slate-200 dark:border-darkBg-700 text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between">
+        <span>ECT: Cada contracción registrada con cronómetro estandarizado. Sinergias parásitas evaluadas: Glúteos y aductores activos compensatorios.</span>
+      </div>
+    </div>
+
+    <!-- Tono Muscular y Puntos Gatillo Miofasciales -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+      <div>
+        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Tono de Reposo & Palpación del Elevador del Ano</label>
+        <input type="text" value="Hipotonía global anterior. Hipertonía compensatoria de haz puborrectal izquierdo." class="w-full p-2 rounded-lg border border-slate-200 dark:border-darkBg-700 bg-white dark:bg-darkBg-750">
+      </div>
+      <div>
+        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Puntos Gatillo Miofasciales (PGM) / M. Obturador Interno</label>
+        <input type="text" value="PGM activo en obturador interno bilateral (EVA 6/10 reproducido)." class="w-full p-2 rounded-lg border border-slate-200 dark:border-darkBg-700 bg-white dark:bg-darkBg-750">
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Card C: Clasificación de Prolapso de Órganos Pélvicos (POP-Q Simplificado) -->
+  <div class="bg-white dark:bg-darkBg-800 rounded-2xl p-6 border border-slate-200 dark:border-darkBg-700 shadow-xs transition-colors space-y-4">
+    <div class="flex items-center gap-3 pb-3 border-b border-slate-100 dark:border-darkBg-700">
+      <span class="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-sm">
+        <i class="fa-solid fa-layer-group"></i>
+      </span>
+      <div>
+        <h2 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Estadificación de Prolapso (POP-Q Simplificado)</h2>
+        <p class="text-xs text-slate-500 dark:text-slate-400">Descenso de pared anterior (cistocele), apical (histerocele/cúpula) y posterior (rectocele).</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+      <div class="p-3 rounded-xl bg-slate-50 dark:bg-darkBg-750 border border-slate-200 dark:border-darkBg-700">
+        <span class="font-bold text-slate-800 dark:text-slate-200 block mb-1">Pared Anterior (Cistocele)</span>
+        <select class="w-full p-2 rounded-lg border border-slate-200 dark:border-darkBg-700 bg-white dark:bg-darkBg-800 font-semibold">
+          <option selected>Estadio I (&gt; 1 cm sobre el himen)</option>
+          <option>Estadio II (&plusmn; 1 cm del plano del himen)</option>
+          <option>Estadio III (&gt; 1 cm fuera del himen)</option>
+          <option>Estadio 0 (Sin prolapso)</option>
+        </select>
+      </div>
+
+      <div class="p-3 rounded-xl bg-slate-50 dark:bg-darkBg-750 border border-slate-200 dark:border-darkBg-700">
+        <span class="font-bold text-slate-800 dark:text-slate-200 block mb-1">Compartimento Apical (Útero / Cúpula)</span>
+        <select class="w-full p-2 rounded-lg border border-slate-200 dark:border-darkBg-700 bg-white dark:bg-darkBg-800 font-semibold">
+          <option selected>Estadio 0 (Posición anatómica normal)</option>
+          <option>Estadio I</option>
+          <option>Estadio II</option>
+          <option>Estadio III</option>
+        </select>
+      </div>
+
+      <div class="p-3 rounded-xl bg-slate-50 dark:bg-darkBg-750 border border-slate-200 dark:border-darkBg-700">
+        <span class="font-bold text-slate-800 dark:text-slate-200 block mb-1">Pared Posterior (Rectocele)</span>
+        <select class="w-full p-2 rounded-lg border border-slate-200 dark:border-darkBg-700 bg-white dark:bg-darkBg-800 font-semibold">
+          <option selected>Estadio I (Descenso leve pared rectovaginal)</option>
+          <option>Estadio II</option>
+          <option>Estadio 0 (Sin prolapso)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navegación -->
+  <div class="flex justify-between pt-3 no-print">
+    <button 
+      type="button" 
+      (click)="goToPrev()" 
+      class="px-5 py-2.5 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-darkBg-750 hover:bg-slate-200 dark:hover:bg-darkBg-700 rounded-xl transition-colors flex items-center gap-2 cursor-pointer">
+      <i class="fa-solid fa-arrow-left"></i>
+      <span>Volver a Anamnesis</span>
+    </button>
+    <button 
+      type="button" 
+      (click)="goToNext()" 
+      class="px-5 py-2.5 text-xs font-bold text-white bg-brand-600 hover:bg-brand-700 rounded-xl shadow-xs flex items-center gap-2 transition-all cursor-pointer">
+      <span>Continuar a Plan de Tratamiento</span>
+      <i class="fa-solid fa-arrow-right"></i>
+    </button>
+  </div>
+
+</div>
