@@ -1,1 +1,125 @@
-<p>stage-4-evolution works!</p>
+<div class="space-y-6">
+  
+  <!-- Card A: Evolución Clínica Estructurada (Formato SOAP) -->
+  <div class="bg-white dark:bg-darkBg-800 rounded-2xl p-6 border border-slate-200 dark:border-darkBg-700 shadow-xs transition-colors space-y-4">
+    <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-darkBg-700">
+      <div class="flex items-center gap-3">
+        <span class="w-8 h-8 rounded-lg bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 flex items-center justify-center text-sm">
+          <i class="fa-solid fa-clipboard-check"></i>
+        </span>
+        <div>
+          <h2 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Nota de Evolución de Sesión (Estándar SOAP)</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Subjetivo, Objetivo, Análisis funcional y Plan de progresión.</p>
+        </div>
+      </div>
+      <span class="text-xs font-bold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/70 border border-teal-200 dark:border-teal-800 px-3 py-1 rounded-full">
+        Sesión #6 de Control
+      </span>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+      <div>
+        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+          <span class="text-brand-600 dark:text-brand-400">S</span> - Subjetivo (Sensaciones y reporte de escapes de la semana)
+        </label>
+        <textarea rows="3" class="w-full p-2.5 rounded-xl border border-slate-200 dark:border-darkBg-700 bg-slate-50 dark:bg-darkBg-750 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-brand-500 focus:outline-none">La paciente refiere disminución del número de escapes: sólo 1 episodio leve al toser fuerte en el gimnasio. Manifiesta mayor confianza para subir escaleras sin sensación de pesadez.</textarea>
+      </div>
+
+      <div>
+        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+          <span class="text-blue-600 dark:text-blue-400">O</span> - Objetivo (Reevaluación PERFECT & Biofeedback en sesión)
+        </label>
+        <textarea rows="3" class="w-full p-2.5 rounded-xl border border-slate-200 dark:border-darkBg-700 bg-slate-50 dark:bg-darkBg-750 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-brand-500 focus:outline-none">Oxford sube a Grado 3 (contracción moderada con elevación evidente). Sostiene 7 segundos (E:7). Reclutamiento pico en biofeedback EMG alcanza 16.5 µV con descenso a reposo en 1.2 segundos.</textarea>
+      </div>
+
+      <div>
+        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+          <span class="text-purple-600 dark:text-purple-400">A</span> - Análisis / Apreciación Diagnóstica Funcional
+        </label>
+        <textarea rows="3" class="w-full p-2.5 rounded-xl border border-slate-200 dark:border-darkBg-700 bg-slate-50 dark:bg-darkBg-750 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-brand-500 focus:outline-none">Evolución clínica altamente favorable. Disminución del 60% en la severidad sintomática de IUE. Cicatriz perineal ya indolora (EVA 1/10). Inhibición de sinergias parásitas en un 80%.</textarea>
+      </div>
+
+      <div>
+        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+          <span class="text-emerald-600 dark:text-emerald-400">P</span> - Plan & Progresión de Cargas
+        </label>
+        <textarea rows="3" class="w-full p-2.5 rounded-xl border border-slate-200 dark:border-darkBg-700 bg-slate-50 dark:bg-darkBg-750 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-brand-500 focus:outline-none">Progresar ejercicios de Kegel a posición de bipedestación y marcha con impacto leve. Añadir cono vaginal #3 (50g) x 10 min. Mantener sesión semanal de tecarterapia.</textarea>
+      </div>
+    </div>
+
+    <!-- Impresión Global del Paciente (Escala PGI-I) -->
+    <div class="pt-3 border-t border-slate-100 dark:border-darkBg-700 flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-3">
+      <div class="flex items-center gap-2">
+        <span class="font-bold text-slate-700 dark:text-slate-300">Impresión Global de Mejoría (PGI-I):</span>
+        <select class="p-1.5 rounded-lg border border-slate-200 dark:border-darkBg-700 bg-white dark:bg-darkBg-750 font-semibold text-teal-700 dark:text-teal-300">
+          <option selected>1 - Mucho mejor / Alivio notable</option>
+          <option>2 - Moderadamente mejor</option>
+          <option>3 - Levemente mejor</option>
+          <option>4 - Sin cambios</option>
+          <option>5 - Empeoramiento</option>
+        </select>
+      </div>
+      <span class="text-slate-400 text-[11px]">Próximo turno agendado: En 7 días</span>
+    </div>
+  </div>
+
+  <!-- Card B: Gráficos de Evolución y Radar PERFECT (Chart.js) -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    
+    <!-- Gráfico 1: Radar PERFECT Basal vs Control -->
+    <div class="bg-white dark:bg-darkBg-800 rounded-2xl p-6 border border-slate-200 dark:border-darkBg-700 shadow-xs transition-colors">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-darkBg-700 mb-3">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-2">
+          <i class="fa-solid fa-chart-pie text-brand-600"></i> Radar Biomecánico PERFECT
+        </h3>
+        <span class="text-[10px] text-slate-400">Basal (Sesión 1) vs Actual (Sesión 6)</span>
+      </div>
+      <div class="relative h-64 w-full">
+        <canvas #radarCanvas></canvas>
+      </div>
+    </div>
+
+    <!-- Gráfico 2: Línea de Evolución del ICIQ-UI SF -->
+    <div class="bg-white dark:bg-darkBg-800 rounded-2xl p-6 border border-slate-200 dark:border-darkBg-700 shadow-xs transition-colors">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-darkBg-700 mb-3">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-2">
+          <i class="fa-solid fa-chart-line text-teal-600"></i> Curva de Descenso ICIQ-UI SF (0-21)
+        </h3>
+        <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">-65% Reducción de Severidad</span>
+      </div>
+      <div class="relative h-64 w-full">
+        <canvas #evolutionCanvas></canvas>
+      </div>
+    </div>
+
+  </div>
+
+  @if (isCompleted()) {
+    <div class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs flex items-center gap-3 animate-fadeIn">
+      <i class="fa-solid fa-circle-check text-xl text-emerald-600"></i>
+      <div>
+        <h4 class="font-bold">¡Consulta Clínica Cerrada & Firmada Digitalmente!</h4>
+        <p class="text-[11px] text-emerald-700 dark:text-emerald-400 mt-0.5">Se generó la constancia de sesión y la actualización de las curvas de tendencia en la historia clínica del paciente.</p>
+      </div>
+    </div>
+  }
+
+  <!-- Navegación y Finalización -->
+  <div class="flex justify-between pt-3 no-print">
+    <button 
+      type="button" 
+      (click)="goToPrev()" 
+      class="px-5 py-2.5 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-darkBg-750 hover:bg-slate-200 dark:hover:bg-darkBg-700 rounded-xl transition-colors flex items-center gap-2 cursor-pointer">
+      <i class="fa-solid fa-arrow-left"></i>
+      <span>Volver a Plan de Tratamiento</span>
+    </button>
+    <button 
+      type="button" 
+      (click)="finishConsultation()" 
+      class="px-6 py-2.5 text-xs font-bold text-white bg-gradient-to-r from-brand-600 to-teal-600 hover:from-brand-700 hover:to-teal-700 rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer">
+      <i class="fa-solid fa-check-double"></i>
+      <span>Cerrar & Firmar Consulta Digital</span>
+    </button>
+  </div>
+
+</div>
