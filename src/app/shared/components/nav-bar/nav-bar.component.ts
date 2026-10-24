@@ -1,4 +1,5 @@
-import { Component, OnInit, signal, output } from '@angular/core';
+import { Component, OnInit, inject, output, signal } from '@angular/core';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-nav-bar',
@@ -7,6 +8,8 @@ import { Component, OnInit, signal, output } from '@angular/core';
   styleUrl: './nav-bar.component.scss',
 })
 export class NavBarComponent implements OnInit {
+  private readonly toast = inject(ToastService);
+
   protected readonly isDarkMode = signal<boolean>(false);
   protected readonly autosaveStatus = signal<string>('Autoguardado activo');
 
@@ -21,6 +24,7 @@ export class NavBarComponent implements OnInit {
     const nextMode = !this.isDarkMode();
     this.isDarkMode.set(nextMode);
     this.applyTheme(nextMode);
+    this.toast.info(nextMode ? 'Modo Nocturno activado' : 'Modo Diurno activado');
   }
 
   private initTheme(): void {
@@ -54,7 +58,8 @@ export class NavBarComponent implements OnInit {
     this.autosaveStatus.set('Guardando...');
     setTimeout(() => {
       this.autosaveStatus.set('Guardado recién');
-    }, 600);
+      this.toast.success('Consulta clínica y prescripción guardadas');
+    }, 500);
     this.onSave.emit();
   }
 }
