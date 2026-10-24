@@ -1,4 +1,5 @@
-import { Component, HostListener, signal, output } from '@angular/core';
+import { Component, HostListener, inject, output, signal } from '@angular/core';
+import { ToastService } from '../../../core/services/toast.service';
 
 export type BiologicalSex = 'femenino' | 'masculino';
 
@@ -9,6 +10,8 @@ export type BiologicalSex = 'femenino' | 'masculino';
   styleUrl: './patient-sticky-bar.component.scss',
 })
 export class PatientStickyBarComponent {
+  private readonly toast = inject(ToastService);
+
   readonly sex = signal<BiologicalSex>('femenino');
   readonly sexChange = output<BiologicalSex>();
 
@@ -67,6 +70,12 @@ export class PatientStickyBarComponent {
     } else if (selectedSex === 'femenino' && this.patientName() === 'Roberto Carlos Gómez') {
       this.patientName.set('Mariana González Rivas');
     }
+
+    this.toast.info(
+      selectedSex === 'femenino'
+        ? 'Configurado perfil Gineco-Obstétrico'
+        : 'Configurado perfil Urológico Masculino'
+    );
 
     this.sexChange.emit(selectedSex);
   }
