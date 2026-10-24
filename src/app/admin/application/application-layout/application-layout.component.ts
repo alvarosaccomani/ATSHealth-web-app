@@ -4,6 +4,7 @@ import { NavBarComponent } from '../../../shared/components/nav-bar/nav-bar.comp
 import { BiologicalSex, PatientStickyBarComponent } from '../patient-sticky-bar/patient-sticky-bar.component';
 import { StageBarComponent } from '../stage-bar/stage-bar.component';
 import { Stage1AnamnesisComponent } from '../stages/stage-1-anamnesis/stage-1-anamnesis.component';
+import { Stage2PhysicalExamComponent } from '../stages/stage-2-physical-exam/stage-2-physical-exam.component';
 
 @Component({
   selector: 'app-application-layout',
@@ -12,6 +13,7 @@ import { Stage1AnamnesisComponent } from '../stages/stage-1-anamnesis/stage-1-an
     PatientStickyBarComponent,
     StageBarComponent,
     Stage1AnamnesisComponent,
+    Stage2PhysicalExamComponent,
     RouterOutlet,
   ],
   templateUrl: './application-layout.component.html',
