@@ -1,6 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { NavBarComponent } from '../../../shared/components/nav-bar/nav-bar.component';
+import { FooterComponent } from '../../../shared/components/footer/footer.component';
 import { BiologicalSex, PatientStickyBarComponent } from '../patient-sticky-bar/patient-sticky-bar.component';
 import { StageBarComponent } from '../stage-bar/stage-bar.component';
 import { Stage1AnamnesisComponent } from '../stages/stage-1-anamnesis/stage-1-anamnesis.component';
@@ -18,6 +19,7 @@ import { Stage4EvolutionComponent } from '../stages/stage-4-evolution/stage-4-ev
     Stage2PhysicalExamComponent,
     Stage3TreatmentPlanComponent,
     Stage4EvolutionComponent,
+    FooterComponent,
     RouterOutlet,
   ],
   templateUrl: './application-layout.component.html',
