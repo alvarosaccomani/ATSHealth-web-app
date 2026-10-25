@@ -1,5 +1,6 @@
 import { Component, input, output, signal, computed } from '@angular/core';
 import { BiologicalSex } from '../../patient-sticky-bar/patient-sticky-bar.component';
+import { ConsentModalComponent } from '../../../../shared/components/consent-modal/consent-modal.component';
 
 export interface BristolItem {
   type: number;
@@ -22,7 +23,7 @@ export interface DiaryEntry {
 
 @Component({
   selector: 'app-stage-1-anamnesis',
-  imports: [],
+  imports: [ConsentModalComponent],
   templateUrl: './stage-1-anamnesis.component.html',
   styleUrl: './stage-1-anamnesis.component.scss',
 })
