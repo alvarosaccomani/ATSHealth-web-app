@@ -1,1 +1,75 @@
-<p>consent-modal works!</p>
+@if (isOpen()) {
+  <div 
+    class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn"
+    (click)="close()">
+    
+    <div 
+      class="bg-white dark:bg-darkBg-800 rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 dark:border-darkBg-700 max-h-[90vh] flex flex-col transition-colors"
+      (click)="$event.stopPropagation()">
+      
+      <!-- Header -->
+      <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-darkBg-700 mb-4">
+        <div class="flex items-center gap-2.5">
+          <span class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-300 flex items-center justify-center">
+            <i class="fa-solid fa-file-signature text-sm"></i>
+          </span>
+          <h3 class="font-bold text-sm text-slate-900 dark:text-white">Documento de Consentimiento Informado - Suelo Pélvico</h3>
+        </div>
+        <button 
+          type="button" 
+          (click)="close()" 
+          aria-label="Cerrar modal"
+          class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg transition-colors cursor-pointer">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Contenido Médico-Legal con Scroll -->
+      <div class="overflow-y-auto space-y-3.5 text-xs text-slate-600 dark:text-slate-300 pr-1 text-justify leading-relaxed">
+        <p class="font-semibold text-slate-800 dark:text-slate-100">
+          Yo, <span class="font-bold text-brand-700 dark:text-brand-300">{{ patientName() }}</span>, DNI <span class="font-bold">{{ dni() }}</span>, declaro haber sido informada/o detalladamente por el profesional de la salud interviniente acerca del plan de evaluación funcional y tratamiento kinésico uroginecológico / coloproctológico.
+        </p>
+
+        <div class="p-3 rounded-xl bg-slate-50 dark:bg-darkBg-750 border border-slate-200 dark:border-darkBg-700 space-y-2">
+          <p class="font-bold text-slate-800 dark:text-slate-200">Alcance de los Procedimientos Informados:</p>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-slate-300">
+            <li><strong>Evaluación intracavitaria:</strong> Palpación y graduación muscular digital intravaginal y/o anorrectal para determinar la contractilidad (Oxford / PERFECT) y puntos de dolor miofascial.</li>
+            <li><strong>Aparatología especializada:</strong> Empleo de sondas personales hidrosolubles para biofeedback electromiográfico, electroestimulación uroginecológica, diatermia y/o dilatadores progresivos.</li>
+            <li><strong>Ejercicios y reeducación:</strong> Entrenamiento motor pélvico, pautas posturales y corrección de hábitos defecatorios y miccionales.</li>
+          </ul>
+        </div>
+
+        <p>
+          Comprendo que el examen se llevará a cabo en un entorno de estricta privacidad, asepsia y respeto, pudiendo suspender o solicitar la interrupción del procedimiento en cualquier momento sin que ello afecte mi atención general.
+        </p>
+
+        <p class="text-[11px] text-slate-400 italic">
+          Documento regulado bajo las normativas legales de autonomía de la voluntad, protección de datos sensibles de salud e historia clínica electrónica.
+        </p>
+      </div>
+
+      <!-- Footer -->
+      <div class="pt-4 border-t border-slate-200 dark:border-darkBg-700 mt-4 flex items-center justify-between no-print">
+        <span class="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+          <i class="fa-solid fa-shield-halved"></i> Válido para expediente legal
+        </span>
+        <div class="flex items-center gap-2">
+          <button 
+            type="button" 
+            (click)="printPlantilla()" 
+            class="px-3.5 py-1.5 rounded-xl border border-slate-200 dark:border-darkBg-700 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-darkBg-700 transition-colors cursor-pointer flex items-center gap-1.5">
+            <i class="fa-solid fa-print"></i>
+            <span>Imprimir Plantilla</span>
+          </button>
+          <button 
+            type="button" 
+            (click)="close()" 
+            class="px-4 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs transition-colors cursor-pointer">
+            Entendido / Cerrar
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+}
