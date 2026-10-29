@@ -1,0 +1,7 @@
+:host {
+  display: block;
+  position: sticky;
+  top: 4rem; /* 64px - se apila justo debajo de la navbar (h-16) */
+  z-index: 30;
+  width: 100%;
+}

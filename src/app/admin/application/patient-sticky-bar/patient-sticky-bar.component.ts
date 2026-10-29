@@ -1,5 +1,6 @@
-import { Component, HostListener, inject, output, signal } from '@angular/core';
-import { ToastService } from '../../../core/services/toast.service';
+import { Component, HostListener, effect, inject, output, signal } from '@angular/core';
+import { ToastService } from '@services/toast.service';
+import { PatientsService } from '@services/patients.service';
 
 export type BiologicalSex = 'femenino' | 'masculino';
 
@@ -11,6 +12,7 @@ export type BiologicalSex = 'femenino' | 'masculino';
 })
 export class PatientStickyBarComponent {
   private readonly toast = inject(ToastService);
+  private readonly patientsService = inject(PatientsService, { optional: true });
 
   readonly sex = signal<BiologicalSex>('femenino');
   readonly sexChange = output<BiologicalSex>();
@@ -35,6 +37,30 @@ export class PatientStickyBarComponent {
 
   readonly isCompact = signal<boolean>(false);
   readonly isManuallyExpanded = signal<boolean>(false);
+
+  constructor() {
+    effect(() => {
+      const patient = this.patientsService?.activePatient();
+      if (patient) {
+        this.patientName.set(`${patient.pat_firstname} ${patient.pat_lastname}`);
+        this.dni.set(patient.pat_documentnumber);
+        const bioSex = (patient.pat_biologicalsex as BiologicalSex) || 'femenino';
+        this.sex.set(bioSex);
+        this.sexChange.emit(bioSex);
+        if (patient.pat_birthdate) {
+          this.age.set(this.patientsService?.calculateAge(patient.pat_birthdate) ?? 38);
+        }
+        if (patient.pat_medicalcoverage) {
+          this.healthInsurance.set(
+            `${patient.pat_medicalcoverage}${patient.pat_affiliatenumber ? ' #' + patient.pat_affiliatenumber : ''}`
+          );
+        }
+        if (patient.pat_occupation) {
+          this.consultJob.set(patient.pat_occupation);
+        }
+      }
+    });
+  }
 
   @HostListener('window:scroll')
   onWindowScroll(): void {
