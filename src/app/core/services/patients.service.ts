@@ -145,9 +145,58 @@ export class PatientsService {
   public getPatientById(pat_uuid: string): Observable<PatientSingleResult> {
     const headers = new HttpHeaders().set('content-type', 'application/json');
     return this._http.get<PatientSingleResult>(
-      `${environment.apiUrl}patients/${pat_uuid}`,
+      `${environment.apiUrl}patient/${pat_uuid}`,
       { headers }
     );
+  }
+
+  /**
+   * @description Registra un nuevo paciente en la API.
+   *
+   * @param patient Datos del paciente a crear.
+   * @returns Observable con el resultado del paciente creado.
+   */
+  public createPatient(patient: Partial<PatientInterface>): Observable<PatientSingleResult> {
+    const headers = new HttpHeaders().set('content-type', 'application/json');
+    return this._http
+      .post<PatientSingleResult>(`${environment.apiUrl}patient`, patient, { headers })
+      .pipe(
+        tap((res) => {
+          if (res?.data) {
+            this.patients.update((list) => [res.data, ...list]);
+          }
+        })
+      );
+  }
+
+  /**
+   * @description Actualiza los datos de un paciente existente en la API.
+   *
+   * @param pat_uuid Identificador del paciente a modificar.
+   * @param patient Datos actualizados del paciente.
+   * @returns Observable con el resultado del paciente actualizado.
+   */
+  public updatePatient(
+    pat_uuid: string,
+    patient: Partial<PatientInterface>
+  ): Observable<PatientSingleResult> {
+    const headers = new HttpHeaders().set('content-type', 'application/json');
+    return this._http
+      .put<PatientSingleResult>(`${environment.apiUrl}patient/${pat_uuid}`, patient, {
+        headers,
+      })
+      .pipe(
+        tap((res) => {
+          if (res?.data) {
+            this.patients.update((list) =>
+              list.map((p) => (p.pat_uuid === pat_uuid ? res.data : p))
+            );
+            if (this.activePatient()?.pat_uuid === pat_uuid) {
+              this.activePatient.set(res.data);
+            }
+          }
+        })
+      );
   }
 
   /**
