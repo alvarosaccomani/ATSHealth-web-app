@@ -13,7 +13,10 @@ export class AuthLayoutComponent implements OnInit {
   ngOnInit(): void {
     if (typeof window === 'undefined') return;
     const saved = localStorage.getItem('pelvicloud_theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const prefersDark =
+      typeof window.matchMedia === 'function'
+        ? window.matchMedia('(prefers-color-scheme: dark)').matches
+        : false;
     const isDark = saved === 'dark' || (!saved && prefersDark);
     this.isDarkMode.set(isDark);
   }
