@@ -1,9 +1,10 @@
 import { Component, OnInit, inject, output, signal } from '@angular/core';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-nav-bar',
-  imports: [],
+  imports: [RouterLink, RouterLinkActive],
   templateUrl: './nav-bar.component.html',
   styleUrl: './nav-bar.component.scss',
 })
@@ -30,7 +31,10 @@ export class NavBarComponent implements OnInit {
   private initTheme(): void {
     if (typeof window === 'undefined') return;
     const saved = localStorage.getItem('pelvicloud_theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const prefersDark =
+      typeof window.matchMedia === 'function'
+        ? window.matchMedia('(prefers-color-scheme: dark)').matches
+        : false;
     const isDark = saved === 'dark' || (!saved && prefersDark);
     this.isDarkMode.set(isDark);
     this.applyTheme(isDark);
