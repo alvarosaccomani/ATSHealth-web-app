@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { PatientsService } from '@services/patients.service';
 import { ToastService } from '@services/toast.service';
 import { PatientInterface } from '@interfaces/patient';
@@ -8,7 +8,7 @@ import { PatientInterface } from '@interfaces/patient';
 @Component({
   selector: 'app-patients-list',
   standalone: true,
-  imports: [CommonModule, DatePipe],
+  imports: [CommonModule, DatePipe, RouterLink],
   templateUrl: './patients-list.component.html',
   styleUrl: './patients-list.component.scss',
 })
