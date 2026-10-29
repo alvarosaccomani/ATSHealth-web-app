@@ -1,1 +1,152 @@
-<p>sidebar works!</p>
+<!-- BACKDROP PARA MOBILE -->
+@if (isMobileOpen()) {
+  <div
+    (click)="closeMobile()"
+    class="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-xs md:hidden transition-opacity"></div>
+}
+
+<!-- ASIDE LATERAL -->
+<aside
+  class="fixed inset-y-0 left-0 z-50 flex flex-col bg-white dark:bg-darkBg-800 border-r border-slate-200 dark:border-darkBg-700 shadow-lg md:shadow-none transition-all duration-300 ease-in-out md:sticky md:top-0 md:h-screen select-none"
+  [class.w-64]="!isCollapsed()"
+  [class.w-20]="isCollapsed()"
+  [class.-translate-x-full]="!isMobileOpen()"
+  [class.translate-x-0]="isMobileOpen()"
+  [class.md:translate-x-0]="true">
+
+  <!-- CABECERA DEL SIDEBAR -->
+  <div 
+    class="h-16 flex items-center border-b border-slate-100 dark:border-darkBg-700 transition-all overflow-hidden"
+    [class.px-4]="!isCollapsed()"
+    [class.justify-between]="!isCollapsed()"
+    [class.px-2]="isCollapsed()"
+    [class.justify-center]="isCollapsed()">
+
+    @if (!isCollapsed()) {
+      <div class="flex items-center gap-3 overflow-hidden min-w-0">
+        <div class="w-10 h-10 shrink-0 rounded-xl bg-gradient-to-tr from-brand-700 via-brand-600 to-teal-400 text-white flex items-center justify-center text-lg shadow-md shadow-brand-500/20">
+          <i class="fa-solid fa-staff-snake"></i>
+        </div>
+        <div class="truncate">
+          <span class="font-extrabold text-base tracking-tight bg-gradient-to-r from-teal-700 via-brand-600 to-emerald-500 bg-clip-text text-transparent dark:from-teal-300 dark:to-emerald-400 block truncate">
+            PelviCloud
+          </span>
+          <span class="text-[10px] font-bold text-slate-400 dark:text-slate-400 block truncate">
+            EHR Uro-Pélvico
+          </span>
+        </div>
+      </div>
+
+      <!-- Botón contraer en Desktop -->
+      <button
+        type="button"
+        (click)="toggleCollapse()"
+        class="hidden md:flex shrink-0 w-8 h-8 rounded-lg items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-darkBg-700 transition-colors cursor-pointer"
+        title="Contraer barra lateral">
+        <i class="fa-solid fa-angles-left text-xs"></i>
+      </button>
+
+      <!-- Botón cerrar en Mobile -->
+      <button
+        type="button"
+        (click)="closeMobile()"
+        class="md:hidden shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-darkBg-700 transition-colors cursor-pointer">
+        <i class="fa-solid fa-xmark text-sm"></i>
+      </button>
+    } @else {
+      <!-- Modo Colapsado: Logo centrado con acción de expandir al click -->
+      <button
+        type="button"
+        (click)="toggleCollapse()"
+        title="Expandir barra lateral"
+        class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-700 via-brand-600 to-teal-400 text-white flex items-center justify-center text-lg shadow-md shadow-brand-500/20 hover:scale-105 transition-transform cursor-pointer">
+        <i class="fa-solid fa-staff-snake"></i>
+      </button>
+    }
+  </div>
+
+  <!-- NAVEGACIÓN -->
+  <nav 
+    class="flex-1 py-4 space-y-2 overflow-y-auto overflow-x-hidden"
+    [class.px-3]="!isCollapsed()"
+    [class.px-2]="isCollapsed()">
+
+    @if (!isCollapsed()) {
+      <p class="px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">
+        Módulos Principales
+      </p>
+    }
+
+    @for (item of navigationItems; track item.label) {
+      @if (item.disabled) {
+        <div
+          class="flex items-center rounded-xl text-slate-400 dark:text-slate-500 cursor-not-allowed select-none transition-colors"
+          [class.gap-3]="!isCollapsed()"
+          [class.px-3]="!isCollapsed()"
+          [class.py-2.5]="!isCollapsed()"
+          [class.w-11]="isCollapsed()"
+          [class.h-11]="isCollapsed()"
+          [class.mx-auto]="isCollapsed()"
+          [class.justify-center]="isCollapsed()"
+          [title]="item.label + ' (Próximamente)'">
+          <i class="fa-solid {{ item.icon }} text-base shrink-0 text-center"></i>
+          @if (!isCollapsed()) {
+            <span class="text-xs font-medium flex-1 truncate">{{ item.label }}</span>
+            @if (item.badge) {
+              <span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-darkBg-700 text-slate-400">
+                {{ item.badge }}
+              </span>
+            }
+          }
+        </div>
+      } @else {
+        <a
+          [routerLink]="item.route"
+          (click)="closeMobile()"
+          routerLinkActive="bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 font-bold border border-teal-200/80 dark:border-teal-800 shadow-2xs"
+          [routerLinkActiveOptions]="{ exact: false }"
+          class="flex items-center rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-darkBg-700 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer group"
+          [class.gap-3]="!isCollapsed()"
+          [class.px-3]="!isCollapsed()"
+          [class.py-2.5]="!isCollapsed()"
+          [class.w-11]="isCollapsed()"
+          [class.h-11]="isCollapsed()"
+          [class.mx-auto]="isCollapsed()"
+          [class.justify-center]="isCollapsed()"
+          [title]="isCollapsed() ? item.label : ''">
+          <i class="fa-solid {{ item.icon }} text-base shrink-0 text-center text-slate-500 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors"></i>
+          @if (!isCollapsed()) {
+            <span class="text-xs font-semibold flex-1 truncate">{{ item.label }}</span>
+          }
+        </a>
+      }
+    }
+  </nav>
+
+  <!-- PIE DEL SIDEBAR (CONTEXTO CLÍNICO / SESIÓN) -->
+  <div 
+    class="border-t border-slate-100 dark:border-darkBg-700"
+    [class.p-3]="!isCollapsed()"
+    [class.p-2]="isCollapsed()">
+
+    @if (!isCollapsed()) {
+      <div
+        class="flex items-center gap-3 p-2 rounded-xl bg-slate-50 dark:bg-darkBg-750/70 border border-slate-200/70 dark:border-darkBg-700">
+        <div class="w-8 h-8 rounded-lg bg-teal-100 dark:bg-teal-950/70 text-teal-700 dark:text-teal-300 flex items-center justify-center text-xs shrink-0 font-bold">
+          <i class="fa-solid fa-clinic-medical"></i>
+        </div>
+        <div class="min-w-0 flex-1">
+          <p class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">Sede Central</p>
+          <p class="text-[10px] text-slate-400 truncate">Pelviperineología</p>
+        </div>
+      </div>
+    } @else {
+      <!-- Modo Colapsado: Icono centrado con tooltip -->
+      <div 
+        title="Sede Central - Pelviperineología"
+        class="w-11 h-11 mx-auto rounded-xl bg-slate-50 dark:bg-darkBg-750/70 border border-slate-200/70 dark:border-darkBg-700 flex items-center justify-center text-teal-700 dark:text-teal-300 cursor-pointer hover:bg-slate-100 dark:hover:bg-darkBg-700 transition-colors">
+        <i class="fa-solid fa-clinic-medical text-sm"></i>
+      </div>
+    }
+  </div>
+</aside>
