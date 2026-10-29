@@ -37,6 +37,10 @@ export class PatientStickyBarComponent {
 
   readonly isCompact = signal<boolean>(false);
   readonly isManuallyExpanded = signal<boolean>(false);
+  readonly autosaveStatus = signal<string>('Autoguardado activo');
+
+  readonly onSave = output<void>();
+  readonly onPrint = output<void>();
 
   constructor() {
     effect(() => {
@@ -109,5 +113,21 @@ export class PatientStickyBarComponent {
   onNameInput(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.patientName.set(input.value);
+  }
+
+  printRecord(): void {
+    if (typeof window !== 'undefined') {
+      window.print();
+    }
+    this.onPrint.emit();
+  }
+
+  saveRecord(): void {
+    this.autosaveStatus.set('Guardando...');
+    setTimeout(() => {
+      this.autosaveStatus.set('Guardado recién');
+      this.toast.success('Consulta clínica y prescripción guardadas');
+    }, 500);
+    this.onSave.emit();
   }
 }

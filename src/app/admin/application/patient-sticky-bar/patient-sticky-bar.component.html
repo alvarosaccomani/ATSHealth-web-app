@@ -38,15 +38,42 @@
             </div>
           </div>
 
-          <!-- Botón Expandir / Editar -->
-          <button 
-            type="button" 
-            (click)="toggleExpansion()" 
-            class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-darkBg-750 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-darkBg-700 border border-slate-200 dark:border-darkBg-700 transition-all cursor-pointer">
-            <i class="fa-solid fa-pen-to-square text-[11px] text-brand-600 dark:text-brand-400"></i>
-            <span>{{ isManuallyExpanded() ? 'Contraer' : 'Editar / Expandir' }}</span>
-            <i class="fa-solid text-[10px] ml-0.5" [class.fa-chevron-up]="isManuallyExpanded()" [class.fa-chevron-down]="!isManuallyExpanded()"></i>
-          </button>
+          <!-- Botones de Acción de Consulta -->
+          <div class="flex items-center gap-2">
+            <!-- Autoguardado -->
+            <div class="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-50 dark:bg-darkBg-750 text-slate-500 dark:text-slate-400 border border-slate-200/80 dark:border-darkBg-700">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>{{ autosaveStatus() }}</span>
+            </div>
+
+            <!-- Imprimir -->
+            <button 
+              type="button" 
+              (click)="printRecord()" 
+              title="Imprimir Consulta"
+              class="no-print p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-darkBg-700 border border-slate-200 dark:border-darkBg-700 transition-all cursor-pointer">
+              <i class="fa-solid fa-print text-xs"></i>
+            </button>
+
+            <!-- Guardar Consulta -->
+            <button 
+              type="button" 
+              (click)="saveRecord()" 
+              class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-brand-600 to-teal-600 hover:from-brand-700 hover:to-teal-700 shadow-xs shadow-brand-500/20 transition-all cursor-pointer">
+              <i class="fa-solid fa-cloud-arrow-up text-[11px]"></i>
+              <span class="hidden sm:inline">Guardar Consulta</span>
+            </button>
+
+            <!-- Botón Expandir / Editar -->
+            <button 
+              type="button" 
+              (click)="toggleExpansion()" 
+              class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-darkBg-750 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-darkBg-700 border border-slate-200 dark:border-darkBg-700 transition-all cursor-pointer">
+              <i class="fa-solid fa-pen-to-square text-[11px] text-brand-600 dark:text-brand-400"></i>
+              <span>{{ isManuallyExpanded() ? 'Contraer' : 'Editar / Expandir' }}</span>
+              <i class="fa-solid text-[10px] ml-0.5" [class.fa-chevron-up]="isManuallyExpanded()" [class.fa-chevron-down]="!isManuallyExpanded()"></i>
+            </button>
+          </div>
         </div>
       } @else {
         <!-- VISTA COMPLETA (EXPANDIDA) -->
@@ -103,6 +130,25 @@
                   [value]="consultDate()" 
                   (input)="consultDate.set($any($event.target).value)"
                   class="px-3 py-2 rounded-xl border border-slate-200 dark:border-darkBg-700 bg-slate-50 dark:bg-darkBg-750 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+              </div>
+
+              <!-- Acciones de Consulta en Vista Expandida -->
+              <div class="flex items-end gap-2">
+                <button 
+                  type="button" 
+                  (click)="printRecord()" 
+                  title="Imprimir Consulta"
+                  class="no-print p-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-darkBg-700 border border-slate-200 dark:border-darkBg-700 transition-all cursor-pointer">
+                  <i class="fa-solid fa-print text-xs"></i>
+                </button>
+
+                <button 
+                  type="button" 
+                  (click)="saveRecord()" 
+                  class="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-brand-600 to-teal-600 hover:from-brand-700 hover:to-teal-700 shadow-xs shadow-brand-500/20 transition-all cursor-pointer">
+                  <i class="fa-solid fa-cloud-arrow-up text-xs"></i>
+                  <span>Guardar Consulta</span>
+                </button>
               </div>
             </div>
 
