@@ -1,1 +1,281 @@
-<p>patient works!</p>
+<main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1">
+  <!-- ENCABEZADO Y VOLVER -->
+  <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-teal-50 dark:bg-teal-950/70 border border-teal-200 dark:border-teal-800 text-teal-700 dark:text-teal-300 mb-2">
+        <i class="fa-solid fa-hospital-user"></i> PelviCloud EHR
+      </div>
+      <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+        {{ isEditMode() ? 'Modificar Paciente' : 'Nuevo Paciente' }}
+      </h1>
+      <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+        {{ isEditMode() ? 'Actualizá los datos de filiación, contacto y cobertura del paciente.' : 'Completá los datos personales y clínicos basales para registrar al paciente.' }}
+      </p>
+    </div>
+
+    <div>
+      <a
+        routerLink="/admin/application/patients"
+        class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 bg-white dark:bg-darkBg-800 border border-slate-300 dark:border-darkBg-700 hover:bg-slate-50 dark:hover:bg-darkBg-750 transition-all cursor-pointer shadow-xs">
+        <i class="fa-solid fa-arrow-left"></i>
+        <span>Volver al Listado</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- ESTADO DE CARGA DE DATOS -->
+  @if (isLoading()) {
+    <div class="p-12 text-center bg-white dark:bg-darkBg-800 rounded-2xl border border-slate-200 dark:border-darkBg-700 shadow-sm">
+      <i class="fa-solid fa-circle-notch fa-spin text-3xl text-brand-600 mb-3"></i>
+      <p class="text-sm font-semibold text-slate-700 dark:text-slate-300">Cargando datos del paciente...</p>
+    </div>
+  } @else {
+    <!-- FORMULARIO -->
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-6">
+
+      <!-- SECCIÓN 1: DATOS PERSONALES -->
+      <div class="bg-white dark:bg-darkBg-800 rounded-2xl border border-slate-200 dark:border-darkBg-700 p-6 shadow-xs">
+        <div class="flex items-center gap-3 pb-4 mb-5 border-b border-slate-100 dark:border-darkBg-700">
+          <div class="w-9 h-9 rounded-xl bg-teal-50 dark:bg-teal-950/70 text-teal-600 dark:text-teal-400 flex items-center justify-center text-sm">
+            <i class="fa-solid fa-id-card"></i>
+          </div>
+          <div>
+            <h2 class="text-base font-bold text-slate-900 dark:text-white">Datos Personales y Filiatorios</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Identificación oficial y datos biométricos</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <!-- Nombre -->
+          <div>
+            <label for="pat_firstname" class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+              Nombres <span class="text-rose-500">*</span>
+            </label>
+            <input
+              id="pat_firstname"
+              type="text"
+              formControlName="pat_firstname"
+              placeholder="Ej. María Belén"
+              [class.border-rose-400]="isFieldInvalid('pat_firstname')"
+              class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-darkBg-900 border border-slate-200 dark:border-darkBg-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all" />
+            @if (isFieldInvalid('pat_firstname')) {
+              <p class="text-[11px] text-rose-500 font-medium mt-1">El nombre es obligatorio.</p>
+            }
+          </div>
+
+          <!-- Apellido -->
+          <div>
+            <label for="pat_lastname" class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+              Apellidos <span class="text-rose-500">*</span>
+            </label>
+            <input
+              id="pat_lastname"
+              type="text"
+              formControlName="pat_lastname"
+              placeholder="Ej. Rodríguez"
+              [class.border-rose-400]="isFieldInvalid('pat_lastname')"
+              class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-darkBg-900 border border-slate-200 dark:border-darkBg-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all" />
+            @if (isFieldInvalid('pat_lastname')) {
+              <p class="text-[11px] text-rose-500 font-medium mt-1">El apellido es obligatorio.</p>
+            }
+          </div>
+
+          <!-- Documento (DNI/Pasaporte) -->
+          <div>
+            <label for="pat_documentnumber" class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+              N° Documento (DNI / Pasaporte) <span class="text-rose-500">*</span>
+            </label>
+            <input
+              id="pat_documentnumber"
+              type="text"
+              formControlName="pat_documentnumber"
+              placeholder="Ej. 34567890"
+              [class.border-rose-400]="isFieldInvalid('pat_documentnumber')"
+              class="w-full px-3.5 py-2.5 rounded-xl text-sm font-mono bg-slate-50 dark:bg-darkBg-900 border border-slate-200 dark:border-darkBg-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all" />
+            @if (isFieldInvalid('pat_documentnumber')) {
+              <p class="text-[11px] text-rose-500 font-medium mt-1">El documento es obligatorio.</p>
+            }
+          </div>
+
+          <!-- Fecha de Nacimiento -->
+          <div>
+            <label for="pat_birthdate" class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+              Fecha de Nacimiento <span class="text-rose-500">*</span>
+            </label>
+            <input
+              id="pat_birthdate"
+              type="date"
+              formControlName="pat_birthdate"
+              [class.border-rose-400]="isFieldInvalid('pat_birthdate')"
+              class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-darkBg-900 border border-slate-200 dark:border-darkBg-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all" />
+            @if (isFieldInvalid('pat_birthdate')) {
+              <p class="text-[11px] text-rose-500 font-medium mt-1">La fecha de nacimiento es obligatoria.</p>
+            }
+          </div>
+
+          <!-- Sexo Biológico -->
+          <div>
+            <label for="pat_biologicalsex" class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+              Sexo Biológico (Protocolo Clínico) <span class="text-rose-500">*</span>
+            </label>
+            <select
+              id="pat_biologicalsex"
+              formControlName="pat_biologicalsex"
+              class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-darkBg-900 border border-slate-200 dark:border-darkBg-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all">
+              <option value="femenino">Femenino (Protocolo Gineco-Obstétrico)</option>
+              <option value="masculino">Masculino (Protocolo Urológico)</option>
+              <option value="otro">Otro</option>
+            </select>
+          </div>
+
+          <!-- Identidad de Género -->
+          <div>
+            <label for="pat_genderidentity" class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+              Identidad de Género (Opcional)
+            </label>
+            <input
+              id="pat_genderidentity"
+              type="text"
+              formControlName="pat_genderidentity"
+              placeholder="Ej. Mujer Cis, Varón Trans, etc."
+              class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-darkBg-900 border border-slate-200 dark:border-darkBg-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all" />
+          </div>
+
+          <!-- Ocupación -->
+          <div class="sm:col-span-2 lg:col-span-3">
+            <label for="pat_occupation" class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+              Ocupación / Actividad Laboral
+            </label>
+            <input
+              id="pat_occupation"
+              type="text"
+              formControlName="pat_occupation"
+              placeholder="Ej. Empleada administrativa (8hs sentada), Kinesióloga, Deportista"
+              class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-darkBg-900 border border-slate-200 dark:border-darkBg-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all" />
+          </div>
+        </div>
+      </div>
+
+      <!-- SECCIÓN 2: CONTACTO Y COBERTURA -->
+      <div class="bg-white dark:bg-darkBg-800 rounded-2xl border border-slate-200 dark:border-darkBg-700 p-6 shadow-xs">
+        <div class="flex items-center gap-3 pb-4 mb-5 border-b border-slate-100 dark:border-darkBg-700">
+          <div class="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/70 text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm">
+            <i class="fa-solid fa-address-book"></i>
+          </div>
+          <div>
+            <h2 class="text-base font-bold text-slate-900 dark:text-white">Contacto y Cobertura Médica</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Canales de comunicación y obra social / prepaga</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <!-- Teléfono -->
+          <div>
+            <label for="pat_phone" class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+              Teléfono / WhatsApp
+            </label>
+            <input
+              id="pat_phone"
+              type="tel"
+              formControlName="pat_phone"
+              placeholder="+54 9 11 1234-5678"
+              class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-darkBg-900 border border-slate-200 dark:border-darkBg-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all" />
+          </div>
+
+          <!-- Email -->
+          <div>
+            <label for="pat_email" class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+              Correo Electrónico
+            </label>
+            <input
+              id="pat_email"
+              type="email"
+              formControlName="pat_email"
+              placeholder="paciente@ejemplo.com"
+              [class.border-rose-400]="isFieldInvalid('pat_email')"
+              class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-darkBg-900 border border-slate-200 dark:border-darkBg-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all" />
+            @if (isFieldInvalid('pat_email')) {
+              <p class="text-[11px] text-rose-500 font-medium mt-1">Ingresá un formato de correo válido.</p>
+            }
+          </div>
+
+          <!-- Contacto de Emergencia -->
+          <div>
+            <label for="pat_emergencycontact" class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+              Contacto de Emergencia
+            </label>
+            <input
+              id="pat_emergencycontact"
+              type="text"
+              formControlName="pat_emergencycontact"
+              placeholder="Nombre y Teléfono (ej. Juan - Pareja 11443322)"
+              class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-darkBg-900 border border-slate-200 dark:border-darkBg-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all" />
+          </div>
+
+          <!-- Cobertura Médica -->
+          <div>
+            <label for="pat_medicalcoverage" class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+              Obra Social / Prepaga
+            </label>
+            <input
+              id="pat_medicalcoverage"
+              type="text"
+              formControlName="pat_medicalcoverage"
+              placeholder="Ej. OSDE 310, Swiss Medical, Particular"
+              class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-darkBg-900 border border-slate-200 dark:border-darkBg-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all" />
+          </div>
+
+          <!-- Número de Afiliado -->
+          <div>
+            <label for="pat_affiliatenumber" class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+              N° de Afiliado / Credencial
+            </label>
+            <input
+              id="pat_affiliatenumber"
+              type="text"
+              formControlName="pat_affiliatenumber"
+              placeholder="Ej. 12345678-01"
+              class="w-full px-3.5 py-2.5 rounded-xl text-sm font-mono bg-slate-50 dark:bg-darkBg-900 border border-slate-200 dark:border-darkBg-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all" />
+          </div>
+
+          <!-- Estado Activo -->
+          <div class="flex items-center pt-6">
+            <label class="relative flex items-center gap-3 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                formControlName="pat_active"
+                class="sr-only peer" />
+              <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-brand-500 rounded-full peer dark:bg-darkBg-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-darkBg-600 peer-checked:bg-brand-600"></div>
+              <span class="text-xs font-bold text-slate-700 dark:text-slate-300">
+                Paciente Activo en el Sistema
+              </span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- BOTONES DE ACCIÓN -->
+      <div class="flex items-center justify-end gap-3 pt-2">
+        <a
+          routerLink="/admin/application/patients"
+          class="px-5 py-2.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-darkBg-800 border border-slate-200 dark:border-darkBg-700 hover:bg-slate-50 dark:hover:bg-darkBg-750 transition-all cursor-pointer">
+          Cancelar
+        </a>
+
+        <button
+          type="submit"
+          [disabled]="isSaving()"
+          class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-teal-600 to-brand-600 hover:from-teal-700 hover:to-brand-700 shadow-md shadow-brand-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer">
+          @if (isSaving()) {
+            <i class="fa-solid fa-circle-notch fa-spin"></i>
+            <span>Guardando...</span>
+          } @else {
+            <i class="fa-solid" [class.fa-floppy-disk]="isEditMode()" [class.fa-user-plus]="!isEditMode()"></i>
+            <span>{{ isEditMode() ? 'Guardar Cambios' : 'Registrar Paciente' }}</span>
+          }
+        </button>
+      </div>
+
+    </form>
+  }
+</main>
