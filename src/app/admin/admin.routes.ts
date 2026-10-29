@@ -3,6 +3,14 @@ import { Routes } from '@angular/router';
 export const ADMIN_ROUTES: Routes = [
   {
     path: 'application',
-    loadChildren: () => import('./application/application.routes').then(m => m.APPLICATION_ROUTES)
-  }
+    loadChildren: () =>
+      import('./application/application.routes').then(
+        (m) => m.APPLICATION_ROUTES
+      ),
+  },
+  {
+    path: '',
+    redirectTo: 'application',
+    pathMatch: 'full',
+  },
 ];
