@@ -16,6 +16,16 @@ export const APPLICATION_ROUTES: Routes = [
           ),
       },
       {
+        path: 'patient',
+        loadComponent: () =>
+          import('./patient/patient.component').then((c) => c.PatientComponent),
+      },
+      {
+        path: 'patient/:pat_uuid',
+        loadComponent: () =>
+          import('./patient/patient.component').then((c) => c.PatientComponent),
+      },
+      {
         path: 'encounter',
         loadComponent: () =>
           import('./encounter/encounter.component').then(
