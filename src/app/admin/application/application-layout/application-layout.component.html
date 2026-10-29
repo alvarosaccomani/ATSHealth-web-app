@@ -1,7 +1,15 @@
-<div class="min-h-screen flex flex-col bg-slate-100 dark:bg-darkBg-900 text-slate-800 dark:text-slate-100 transition-colors">
-  <app-nav-bar />
-  <div class="w-full flex-1 flex flex-col">
-    <router-outlet />
+<div class="min-h-screen flex bg-slate-100 dark:bg-darkBg-900 text-slate-800 dark:text-slate-100 transition-colors">
+  <!-- SIDEBAR LATERAL NAVEGACIONAL -->
+  <app-sidebar />
+
+  <!-- CONTENEDOR PRINCIPAL CON SCROLL Y NAVBAR -->
+  <div class="flex-1 flex flex-col min-w-0 min-h-screen">
+    <app-nav-bar />
+    
+    <div class="w-full flex-1 flex flex-col">
+      <router-outlet />
+    </div>
+
+    <app-footer />
   </div>
-  <app-footer />
 </div>
