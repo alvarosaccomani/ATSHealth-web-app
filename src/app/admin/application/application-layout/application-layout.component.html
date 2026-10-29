@@ -1,18 +1,7 @@
 <div class="min-h-screen flex flex-col bg-slate-100 dark:bg-darkBg-900 text-slate-800 dark:text-slate-100 transition-colors">
   <app-nav-bar />
-  <app-patient-sticky-bar (sexChange)="activeSex.set($event)" />
-  <app-stage-bar [(currentStage)]="activeStage" />
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 w-full flex-1">
-    @if (activeStage() === 1) {
-      <app-stage-1-anamnesis [sex]="activeSex()" (nextStage)="activeStage.set($event)" />
-    } @else if (activeStage() === 2) {
-      <app-stage-2-physical-exam (prevStage)="activeStage.set($event)" (nextStage)="activeStage.set($event)" />
-    } @else if (activeStage() === 3) {
-      <app-stage-3-treatment-plan (prevStage)="activeStage.set($event)" (nextStage)="activeStage.set($event)" />
-    } @else if (activeStage() === 4) {
-      <app-stage-4-evolution (prevStage)="activeStage.set($event)" />
-    }
+  <div class="w-full flex-1 flex flex-col">
     <router-outlet />
-  </main>
+  </div>
   <app-footer />
 </div>
