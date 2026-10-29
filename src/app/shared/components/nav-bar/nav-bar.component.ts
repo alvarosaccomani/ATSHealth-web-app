@@ -1,21 +1,19 @@
-import { Component, OnInit, inject, output, signal } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
-import { ToastService } from '../../../core/services/toast.service';
+import { Component, OnInit, inject, signal } from '@angular/core';
+import { SidebarService } from '@services/sidebar.service';
+import { ToastService } from '@services/toast.service';
 
 @Component({
   selector: 'app-nav-bar',
-  imports: [RouterLink, RouterLinkActive],
+  standalone: true,
+  imports: [],
   templateUrl: './nav-bar.component.html',
   styleUrl: './nav-bar.component.scss',
 })
 export class NavBarComponent implements OnInit {
   private readonly toast = inject(ToastService);
+  readonly sidebarService = inject(SidebarService);
 
   protected readonly isDarkMode = signal<boolean>(false);
-  protected readonly autosaveStatus = signal<string>('Autoguardado activo');
-
-  readonly onSave = output<void>();
-  readonly onPrint = output<void>();
 
   ngOnInit(): void {
     this.initTheme();
@@ -49,21 +47,5 @@ export class NavBarComponent implements OnInit {
       document.documentElement.classList.remove('dark');
       localStorage.setItem('pelvicloud_theme', 'light');
     }
-  }
-
-  protected printRecord(): void {
-    if (typeof window !== 'undefined') {
-      window.print();
-    }
-    this.onPrint.emit();
-  }
-
-  protected saveRecord(): void {
-    this.autosaveStatus.set('Guardando...');
-    setTimeout(() => {
-      this.autosaveStatus.set('Guardado recién');
-      this.toast.success('Consulta clínica y prescripción guardadas');
-    }, 500);
-    this.onSave.emit();
   }
 }
