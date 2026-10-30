@@ -136,14 +136,16 @@
           <i class="fa-solid fa-clinic-medical"></i>
         </div>
         <div class="min-w-0 flex-1">
-          <p class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">Sede Central</p>
-          <p class="text-[10px] text-slate-400 truncate">Pelviperineología</p>
+          <p class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
+            {{ companyContext.activeCompany()?.cmp_name || 'Clínica Conectada' }}
+          </p>
+          <p class="text-[10px] text-slate-400 truncate">Pelviperineología & EHR</p>
         </div>
       </div>
     } @else {
-      <!-- Modo Colapsado: Icono centrado con tooltip -->
+      <!-- Modo Colapsado: Icono centrado con tooltip dinámico -->
       <div 
-        title="Sede Central - Pelviperineología"
+        [title]="companyContext.activeCompany()?.cmp_name || 'Clínica Conectada'"
         class="w-11 h-11 mx-auto rounded-xl bg-slate-50 dark:bg-darkBg-750/70 border border-slate-200/70 dark:border-darkBg-700 flex items-center justify-center text-teal-700 dark:text-teal-300 cursor-pointer hover:bg-slate-100 dark:hover:bg-darkBg-700 transition-colors">
         <i class="fa-solid fa-clinic-medical text-sm"></i>
       </div>

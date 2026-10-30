@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { SidebarService } from '@services/sidebar.service';
+import { CompanyContextService } from '@services/company-context.service';
 
 interface NavItem {
   label: string;
@@ -20,6 +21,7 @@ interface NavItem {
 })
 export class SidebarComponent {
   readonly sidebarService = inject(SidebarService);
+  readonly companyContext = inject(CompanyContextService);
 
   readonly isCollapsed = this.sidebarService.isCollapsed;
   readonly isMobileOpen = this.sidebarService.isMobileOpen;
