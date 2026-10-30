@@ -1,4 +1,5 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
+import { Observable, map, of, tap } from 'rxjs';
 import { CompanyEntity } from '@interfaces/company';
 import { UserRolesCompanyService } from '@services/user-roles-company.service';
 import { ToastService } from '@services/toast.service';
@@ -23,17 +24,17 @@ export class CompanyContextService {
    * @description Carga las clínicas asociadas a un usuario y establece la clínica activa.
    *
    * @param usr_uuid UUID del usuario autenticado.
+   * @returns Observable con la lista de clínicas obtenidas.
    */
-  loadUserCompanies(usr_uuid: string): void {
-    if (!usr_uuid) return;
+  loadUserCompanies(usr_uuid: string): Observable<CompanyEntity[]> {
+    if (!usr_uuid) return of([]);
 
     this.isLoading.set(true);
-    this.userRolesCompanyService.getUserRolesCompanyByUser(usr_uuid).subscribe({
-      next: (res) => {
+    return this.userRolesCompanyService.getUserRolesCompanyByUser(usr_uuid).pipe(
+      map((res) => {
         this.isLoading.set(false);
         const data = res?.data;
         if (data && Array.isArray(data)) {
-          // Extraer empresas únicas evitando duplicados si el usuario tiene múltiples roles en la misma
           const uniqueMap = new Map<string, CompanyEntity>();
           for (const item of data) {
             if (item.cmp) {
@@ -44,19 +45,26 @@ export class CompanyContextService {
           const companiesList = Array.from(uniqueMap.values());
           this.setCompanies(companiesList);
 
-          // Si no hay activa o la activa ya no pertenece a la lista, seleccionar la primera
           const currentActive = this._activeCompany();
           if (!currentActive || !uniqueMap.has(currentActive.cmp_uuid)) {
             if (companiesList.length > 0) {
               this.setActiveCompany(companiesList[0]);
+            } else {
+              this._activeCompany.set(null);
             }
           }
+          return companiesList;
         }
-      },
-      error: () => {
-        this.isLoading.set(false);
-      },
-    });
+        this.setCompanies([]);
+        this._activeCompany.set(null);
+        return [];
+      }),
+      tap({
+        error: () => {
+          this.isLoading.set(false);
+        },
+      })
+    );
   }
 
   /**
