@@ -58,8 +58,15 @@ export class AuthService {
 
               if (extractedToken) {
                 this.setToken(extractedToken);
-              }
-              if (data.user) {
+                const userFromToken = this.decodeUserFromToken(extractedToken);
+                if (data.user) {
+                  this.setUser(data.user);
+                  this.companyContextService.loadUserCompanies(data.user.usr_uuid);
+                } else if (userFromToken) {
+                  this.setUser(userFromToken);
+                  this.companyContextService.loadUserCompanies(userFromToken.usr_uuid);
+                }
+              } else if (data.user) {
                 this.setUser(data.user);
                 this.companyContextService.loadUserCompanies(data.user.usr_uuid);
               }
@@ -114,9 +121,46 @@ export class AuthService {
   private getStoredUser(): AuthUser | null {
     if (typeof localStorage === 'undefined') return null;
     const raw = localStorage.getItem('ats_health_user');
-    if (!raw) return null;
+    if (raw) {
+      try {
+        return JSON.parse(raw) as AuthUser;
+      } catch {
+        // Fallback a decodificar del token
+      }
+    }
+    const token = this.getStoredToken();
+    if (token) {
+      return this.decodeUserFromToken(token);
+    }
+    return null;
+  }
+
+  /**
+   * @description Decodifica de forma segura los datos del usuario a partir del JWT.
+   */
+  private decodeUserFromToken(token: string): AuthUser | null {
     try {
-      return JSON.parse(raw) as AuthUser;
+      const parts = token.split('.');
+      if (parts.length !== 3) return null;
+      const base64Url = parts[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      const decoded = JSON.parse(jsonPayload);
+      if (!decoded || (!decoded.sub && !decoded.usr_uuid)) return null;
+
+      return {
+        usr_uuid: decoded.sub || decoded.usr_uuid,
+        usr_name: decoded.usr_name || '',
+        usr_surname: decoded.usr_surname || '',
+        usr_email: decoded.usr_email || '',
+        usr_nick: decoded.usr_nick || '',
+        usr_image: decoded.usr_image || null,
+      };
     } catch {
       return null;
     }
