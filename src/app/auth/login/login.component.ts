@@ -1,20 +1,25 @@
 import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { AuthService } from '@services/auth.service';
+import { ToastService } from '@services/toast.service';
 
 @Component({
   selector: 'app-login',
+  standalone: true,
   imports: [],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
 export class LoginComponent {
   private readonly router = inject(Router);
+  private readonly authService = inject(AuthService);
+  private readonly toast = inject(ToastService);
 
   readonly email = signal<string>('lic.gonzalez@atshealth.com');
   readonly password = signal<string>('PelviCloud2026!');
   readonly rememberMe = signal<boolean>(true);
   readonly showPassword = signal<boolean>(false);
-  readonly isLoading = signal<boolean>(false);
+  readonly isLoading = this.authService.isLoading;
   readonly errorMessage = signal<string | null>(null);
 
   togglePasswordVisibility(): void {
@@ -45,18 +50,35 @@ export class LoginComponent {
     const passVal = this.password().trim();
 
     if (!emailVal || !passVal) {
-      this.errorMessage.set('Por favor ingresá tu email profesional y contraseña.');
+      const msg = 'Por favor ingresá tu email profesional y contraseña.';
+      this.errorMessage.set(msg);
+      this.toast.warning(msg);
       return;
     }
 
     this.errorMessage.set(null);
-    this.isLoading.set(true);
 
-    // Simulación de autenticación profesional (token / sesión)
-    setTimeout(() => {
-      this.isLoading.set(false);
-      this.router.navigate(['/admin/application']);
-    }, 700);
+    this.authService
+      .login({
+        usr_user: emailVal,
+        usr_password: passVal,
+        gettoken: true,
+      })
+      .subscribe({
+        next: () => {
+          this.toast.success('¡Bienvenida/o a PelviCloud!');
+          this.router.navigate(['/admin/application/patients']);
+        },
+        error: (err) => {
+          const errorMsg =
+            err?.error?.message ||
+            err?.error?.error ||
+            err?.message ||
+            'Error al iniciar sesión. Verificá tus credenciales.';
+          this.errorMessage.set(errorMsg);
+          this.toast.error(errorMsg);
+        },
+      });
   }
 
   loginWithDemo(): void {
