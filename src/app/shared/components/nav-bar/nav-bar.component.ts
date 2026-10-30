@@ -1,19 +1,42 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, HostListener, OnInit, inject, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { SidebarService } from '@services/sidebar.service';
+import { CompanyContextService } from '@services/company-context.service';
 import { ToastService } from '@services/toast.service';
+import { CompanyEntity } from '@interfaces/company';
 
 @Component({
   selector: 'app-nav-bar',
   standalone: true,
-  imports: [],
+  imports: [CommonModule],
   templateUrl: './nav-bar.component.html',
   styleUrl: './nav-bar.component.scss',
 })
 export class NavBarComponent implements OnInit {
   private readonly toast = inject(ToastService);
   readonly sidebarService = inject(SidebarService);
+  readonly companyContext = inject(CompanyContextService);
 
   protected readonly isDarkMode = signal<boolean>(false);
+  protected readonly isCompanyDropdownOpen = signal<boolean>(false);
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.company-dropdown-container')) {
+      this.isCompanyDropdownOpen.set(false);
+    }
+  }
+
+  toggleCompanyDropdown(event: MouseEvent): void {
+    event.stopPropagation();
+    this.isCompanyDropdownOpen.update((open) => !open);
+  }
+
+  selectCompany(company: CompanyEntity): void {
+    this.companyContext.setActiveCompany(company);
+    this.isCompanyDropdownOpen.set(false);
+  }
 
   ngOnInit(): void {
     this.initTheme();
