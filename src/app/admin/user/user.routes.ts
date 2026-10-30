@@ -7,6 +7,19 @@ export const USER_ROUTES: Routes = [
       import('./user-layout/user-layout.component').then(
         (c) => c.UserLayoutComponent
       ),
-    children: [],
+    children: [
+      {
+        path: 'company-onboarding',
+        loadComponent: () =>
+          import('./company-onboarding/company-onboarding.component').then(
+            (c) => c.CompanyOnboardingComponent
+          ),
+      },
+      {
+        path: '',
+        redirectTo: 'company-onboarding',
+        pathMatch: 'full',
+      },
+    ],
   },
 ];
