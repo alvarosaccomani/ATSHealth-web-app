@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '@services/auth.service';
+import { CompanyContextService } from '@services/company-context.service';
 import { PatientsService } from '@services/patients.service';
 import { ToastService } from '@services/toast.service';
 import { PatientInterface } from '@interfaces/patient';
@@ -19,6 +20,7 @@ export class PatientComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
+  private readonly companyContext = inject(CompanyContextService);
   private readonly patientsService = inject(PatientsService);
   private readonly toast = inject(ToastService);
 
@@ -106,12 +108,12 @@ export class PatientComponent implements OnInit {
     }
 
     const formValue = this.form.value;
-    // TODO: Pendiente obtener cmp_uuid de forma dinámica según el contexto de la empresa o sesión activa.
-    const DEFAULT_CMP_UUID = 'a6873776-0d8e-45a9-8e2e-61e07f7ed245';
+    const FALLBACK_CMP_UUID = 'a6873776-0d8e-45a9-8e2e-61e07f7ed245';
+    const activeCmpUuid = this.companyContext.activeCmpUuid() || FALLBACK_CMP_UUID;
     const loggedUserUuid = this.authService.currentUser()?.usr_uuid || null;
 
     const payload: Partial<PatientInterface> = {
-      cmp_uuid: DEFAULT_CMP_UUID,
+      cmp_uuid: activeCmpUuid,
       usr_uuid: loggedUserUuid,
       pat_firstname: formValue.pat_firstname.trim(),
       pat_lastname: formValue.pat_lastname.trim(),
