@@ -3,12 +3,14 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthData, AuthSingleResult, AuthUser, LoginCredentials } from '@interfaces/auth';
+import { CompanyContextService } from '@services/company-context.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
   private readonly http = inject(HttpClient);
+  private readonly companyContextService = inject(CompanyContextService);
 
   private readonly _token = signal<string | null>(this.getStoredToken());
   private readonly _currentUser = signal<AuthUser | null>(this.getStoredUser());
@@ -18,6 +20,14 @@ export class AuthService {
   readonly token = this._token.asReadonly();
   readonly currentUser = this._currentUser.asReadonly();
   readonly isAuthenticated = computed(() => Boolean(this._token()));
+
+  constructor() {
+    // Si ya hay usuario recuperado de sesión al iniciar la app, cargar sus empresas
+    const user = this._currentUser();
+    if (user?.usr_uuid) {
+      this.companyContextService.loadUserCompanies(user.usr_uuid);
+    }
+  }
 
   /**
    * @description Realiza el inicio de sesión contra el endpoint /login de la API.
@@ -51,6 +61,7 @@ export class AuthService {
               }
               if (data.user) {
                 this.setUser(data.user);
+                this.companyContextService.loadUserCompanies(data.user.usr_uuid);
               }
             }
           },
@@ -74,6 +85,7 @@ export class AuthService {
     this._token.set(null);
     this._currentUser.set(null);
     this.errorMessage.set(null);
+    this.companyContextService.clear();
     if (typeof localStorage !== 'undefined') {
       localStorage.removeItem('ats_health_token');
       localStorage.removeItem('ats_health_user');
