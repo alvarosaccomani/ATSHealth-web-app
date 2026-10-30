@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '@services/auth.service';
+import { CompanyContextService } from '@services/company-context.service';
 import { ToastService } from '@services/toast.service';
 
 @Component({
@@ -13,6 +14,7 @@ import { ToastService } from '@services/toast.service';
 export class LoginComponent {
   private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
+  private readonly companyContext = inject(CompanyContextService);
   private readonly toast = inject(ToastService);
 
   readonly email = signal<string>('lic.gonzalez@atshealth.com');
@@ -65,9 +67,28 @@ export class LoginComponent {
         gettoken: true,
       })
       .subscribe({
-        next: () => {
+        next: (loginRes) => {
           this.toast.success('¡Bienvenida/o a PelviCloud!');
-          this.router.navigate(['/admin/application/patients']);
+          const userUuid = loginRes?.data?.user?.usr_uuid;
+
+          if (userUuid) {
+            // Verificar si el usuario tiene empresas asociadas antes de redirigir
+            this.companyContext.loadUserCompanies(userUuid).subscribe({
+              next: (companies) => {
+                if (companies && companies.length > 0) {
+                  this.router.navigate(['/admin/application/patients']);
+                } else {
+                  this.toast.info('Completá la vinculación de tu consultorio o clínica para comenzar.');
+                  this.router.navigate(['/admin/user/company-onboarding']);
+                }
+              },
+              error: () => {
+                this.router.navigate(['/admin/user/company-onboarding']);
+              },
+            });
+          } else {
+            this.router.navigate(['/admin/application/patients']);
+          }
         },
         error: (err) => {
           const errorMsg =
