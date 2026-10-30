@@ -1,8 +1,10 @@
 import { Routes } from '@angular/router';
+import { hasCompanyGuard } from '@guards/has-company.guard';
 
 export const APPLICATION_ROUTES: Routes = [
   {
     path: '',
+    canActivate: [hasCompanyGuard],
     loadComponent: () =>
       import('./application-layout/application-layout.component').then(
         (c) => c.ApplicationLayoutComponent
