@@ -38,6 +38,11 @@ export class SidebarComponent {
       route: '/admin/application/encounter',
     },
     {
+      label: 'Equipo y Roles',
+      icon: 'fa-users-gear',
+      route: '/admin/user/company-users',
+    },
+    {
       label: 'Agenda de Turnos',
       icon: 'fa-calendar-check',
       route: '/admin/application/appointments',
