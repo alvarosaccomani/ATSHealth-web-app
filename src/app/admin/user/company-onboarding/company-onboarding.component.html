@@ -1,1 +1,178 @@
-<p>company-onboarding works!</p>
+<main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full flex-1">
+  
+  <!-- CABECERA -->
+  <div class="text-center max-w-2xl mx-auto mb-8">
+    <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-bold bg-teal-50 dark:bg-teal-950/70 border border-teal-200 dark:border-teal-800 text-teal-700 dark:text-teal-300 mb-3 shadow-2xs">
+      <i class="fa-solid fa-clinic-medical"></i> Configuración Inicial Institucional
+    </div>
+    <h1 class="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+      Vinculá tu Centro de Salud o Consultorio
+    </h1>
+    <p class="text-sm text-slate-500 dark:text-slate-400 mt-2">
+      Para comenzar a gestionar pacientes e historias clínicas, registrá tu clínica o sumate al equipo de una sede existente.
+    </p>
+  </div>
+
+  <!-- SELECTOR DE MODO (CREAR vs UNIRSE) -->
+  <div class="flex justify-center mb-8">
+    <div class="inline-flex p-1 bg-slate-200 dark:bg-darkBg-800 rounded-2xl border border-slate-300 dark:border-darkBg-700 text-xs font-bold">
+      <button
+        type="button"
+        (click)="setMode('create')"
+        [class]="mode() === 'create'
+          ? 'px-6 py-2.5 rounded-xl bg-white dark:bg-darkBg-700 text-teal-700 dark:text-teal-300 shadow-sm transition-all cursor-pointer'
+          : 'px-6 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 transition-all cursor-pointer'">
+        <i class="fa-solid fa-plus-circle mr-1.5"></i> Registrar Nueva Clínica
+      </button>
+
+      <button
+        type="button"
+        (click)="setMode('join')"
+        [class]="mode() === 'join'
+          ? 'px-6 py-2.5 rounded-xl bg-white dark:bg-darkBg-700 text-teal-700 dark:text-teal-300 shadow-sm transition-all cursor-pointer'
+          : 'px-6 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 transition-all cursor-pointer'">
+        <i class="fa-solid fa-key mr-1.5"></i> Unirme con Código
+      </button>
+    </div>
+  </div>
+
+  <!-- CONTENEDOR DE FORMULARIO -->
+  <div class="bg-white dark:bg-darkBg-800 rounded-3xl border border-slate-200 dark:border-darkBg-700 shadow-md p-6 sm:p-8">
+    
+    <!-- OPCIÓN 1: CREAR NUEVA CLÍNICA -->
+    @if (mode() === 'create') {
+      <form [formGroup]="createForm" (ngSubmit)="submitCreate()" class="space-y-6">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <i class="fa-solid fa-hospital text-brand-600"></i> Datos Principales de la Institución
+          </h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            Completá la ficha de la clínica o consultorio privado que vas a administrar.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <!-- Nombre de la Empresa / Clínica -->
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+              Nombre de la Clínica o Consultorio <span class="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              formControlName="cmp_name"
+              placeholder="Ej. Centro de Fisioterapia y Suelo Pélvico San Martín"
+              class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-darkBg-900 border border-slate-200 dark:border-darkBg-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            @if (createForm.get('cmp_name')?.touched && createForm.get('cmp_name')?.invalid) {
+              <p class="text-[11px] text-rose-500 font-medium mt-1">El nombre de la clínica es obligatorio.</p>
+            }
+          </div>
+
+          <!-- Teléfono / WhatsApp -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+              Teléfono de Contacto
+            </label>
+            <input
+              type="tel"
+              formControlName="cmp_phone"
+              placeholder="+54 9 11 4455-6677"
+              class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-darkBg-900 border border-slate-200 dark:border-darkBg-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500" />
+          </div>
+
+          <!-- Email Institucional -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+              Correo Electrónico
+            </label>
+            <input
+              type="email"
+              formControlName="cmp_email"
+              placeholder="contacto@clinica.com"
+              class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-darkBg-900 border border-slate-200 dark:border-darkBg-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500" />
+          </div>
+
+          <!-- Dirección -->
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+              Dirección Física / Sede
+            </label>
+            <input
+              type="text"
+              formControlName="cmp_address"
+              placeholder="Ej. Av. Santa Fe 1234, Piso 3, CABA"
+              class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-darkBg-900 border border-slate-200 dark:border-darkBg-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500" />
+          </div>
+
+          <!-- Breve Descripción -->
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+              Especialidad o Descripción Corta
+            </label>
+            <input
+              type="text"
+              formControlName="cmp_description"
+              placeholder="Ej. Especialidad en Uroginecología y Rehabilitación Abdomino-Pélvica"
+              class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-darkBg-900 border border-slate-200 dark:border-darkBg-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500" />
+          </div>
+        </div>
+
+        <div class="pt-4 flex justify-end">
+          <button
+            type="submit"
+            [disabled]="isSubmitting()"
+            class="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-teal-600 to-brand-600 hover:from-teal-700 hover:to-brand-700 shadow-md shadow-brand-500/20 disabled:opacity-50 transition-all cursor-pointer">
+            @if (isSubmitting()) {
+              <i class="fa-solid fa-circle-notch fa-spin"></i>
+              <span>Creando institución...</span>
+            } @else {
+              <i class="fa-solid fa-check"></i>
+              <span>Crear y Comenzar</span>
+            }
+          </button>
+        </div>
+      </form>
+    } @else {
+      <!-- OPCIÓN 2: UNIRSE A CLÍNICA EXISTENTE -->
+      <form [formGroup]="joinForm" (ngSubmit)="submitJoin()" class="space-y-6">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <i class="fa-solid fa-link text-brand-600"></i> Código de Vinculación Institucional
+          </h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            Si fuiste invitado a colaborar en una clínica, ingresá el identificador único UUID de la sede.
+          </p>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+            Identificador UUID de la Clínica <span class="text-rose-500">*</span>
+          </label>
+          <input
+            type="text"
+            formControlName="cmp_uuid"
+            placeholder="Ej. a6873776-0d8e-45a9-8e2e-61e07f7ed245"
+            class="w-full px-3.5 py-2.5 rounded-xl text-sm font-mono bg-slate-50 dark:bg-darkBg-900 border border-slate-200 dark:border-darkBg-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500" />
+          @if (joinForm.get('cmp_uuid')?.touched && joinForm.get('cmp_uuid')?.invalid) {
+            <p class="text-[11px] text-rose-500 font-medium mt-1">Ingresá un código UUID válido.</p>
+          }
+        </div>
+
+        <div class="pt-4 flex justify-end">
+          <button
+            type="submit"
+            [disabled]="isSubmitting()"
+            class="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-teal-600 to-brand-600 hover:from-teal-700 hover:to-brand-700 shadow-md shadow-brand-500/20 disabled:opacity-50 transition-all cursor-pointer">
+            @if (isSubmitting()) {
+              <i class="fa-solid fa-circle-notch fa-spin"></i>
+              <span>Verificando y uniendo...</span>
+            } @else {
+              <i class="fa-solid fa-user-plus"></i>
+              <span>Vincularme a la Sede</span>
+            }
+          </button>
+        </div>
+      </form>
+    }
+
+  </div>
+</main>
