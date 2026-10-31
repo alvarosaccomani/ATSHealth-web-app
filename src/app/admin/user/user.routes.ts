@@ -16,6 +16,13 @@ export const USER_ROUTES: Routes = [
           ),
       },
       {
+        path: 'company-users',
+        loadComponent: () =>
+          import('./company-users/company-users.component').then(
+            (c) => c.CompanyUsersComponent
+          ),
+      },
+      {
         path: '',
         redirectTo: 'company-onboarding',
         pathMatch: 'full',
