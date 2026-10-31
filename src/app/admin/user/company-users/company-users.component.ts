@@ -6,8 +6,9 @@ import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { CompanyContextService } from '@services/company-context.service';
 import { UserRolesCompanyService } from '@services/user-roles-company.service';
 import { UsersService } from '@services/users.service';
+import { RolesService } from '@services/roles.service';
 import { ToastService } from '@services/toast.service';
-import { UserRolCompanyInterface, UserSummaryEntity } from '@interfaces/user-rol-company';
+import { UserRolCompanyInterface, UserSummaryEntity, RolEntity } from '@interfaces/user-rol-company';
 
 @Component({
   selector: 'app-company-users',
@@ -21,12 +22,17 @@ export class CompanyUsersComponent implements OnInit {
   readonly companyContext = inject(CompanyContextService);
   private readonly userRolesCompanyService = inject(UserRolesCompanyService);
   private readonly usersService = inject(UsersService);
+  private readonly rolesService = inject(RolesService);
   private readonly toast = inject(ToastService);
 
   readonly members = signal<UserRolCompanyInterface[]>([]);
   readonly isLoading = signal<boolean>(false);
   readonly isSubmitting = signal<boolean>(false);
   readonly isAddModalOpen = signal<boolean>(false);
+
+  // Lista dinámica de roles cargados desde la base de datos
+  readonly availableRoles = signal<RolEntity[]>([]);
+  readonly isLoadingRoles = signal<boolean>(false);
 
   // Estados reactivos para la búsqueda predictiva de usuarios
   readonly searchResults = signal<UserSummaryEntity[]>([]);
@@ -37,18 +43,41 @@ export class CompanyUsersComponent implements OnInit {
   // Formulario reactivo
   addMemberForm: FormGroup = this.fb.group({
     search_query: [''],
-    rol_uuid: ['1e1eda23-9c30-4bca-8785-d802ad96c1c3', [Validators.required]],
+    rol_uuid: ['', [Validators.required]],
   });
-
-  // Roles predefinidos del sistema (sincronizados con la tabla rol_roles)
-  readonly availableRoles = [
-    { uuid: '1e1eda23-9c30-4bca-8785-d802ad96c1c3', label: 'Administrador Clínico', badge: 'Admin' },
-    { uuid: 'a4f57dd9-4461-42ba-bbe3-7870f383b9ed', label: 'Super Administrador (SysAdmin)', badge: 'SysAdmin' },
-  ];
 
   ngOnInit(): void {
     this.loadMembers();
+    this.loadRoles();
     this.setupSearchWatcher();
+  }
+
+  loadRoles(): void {
+    this.isLoadingRoles.set(true);
+    this.rolesService.getRoles().subscribe({
+      next: (res) => {
+        this.isLoadingRoles.set(false);
+        const roles: RolEntity[] = res?.data || [];
+        this.availableRoles.set(roles);
+
+        // Seleccionar por defecto el rol 'admin' o el primero de la lista
+        if (roles.length > 0) {
+          const adminRole = roles.find((r) => r.rol_name.toLowerCase() === 'admin');
+          const defaultUuid = adminRole ? adminRole.rol_uuid : roles[0].rol_uuid;
+          this.addMemberForm.get('rol_uuid')?.setValue(defaultUuid);
+        }
+      },
+      error: () => {
+        this.isLoadingRoles.set(false);
+        // Fallback preventivo si falla la API
+        const fallback = [
+          { rol_uuid: '1e1eda23-9c30-4bca-8785-d802ad96c1c3', rol_name: 'admin' },
+          { rol_uuid: 'a4f57dd9-4461-42ba-bbe3-7870f383b9ed', rol_name: 'sysadmin' },
+        ];
+        this.availableRoles.set(fallback);
+        this.addMemberForm.get('rol_uuid')?.setValue(fallback[0].rol_uuid);
+      },
+    });
   }
 
   loadMembers(): void {
@@ -83,7 +112,6 @@ export class CompanyUsersComponent implements OnInit {
           return;
         }
 
-        // Si ya hay un usuario seleccionado con ese texto, no volver a buscar
         if (this.selectedUser()) {
           return;
         }
@@ -124,9 +152,10 @@ export class CompanyUsersComponent implements OnInit {
 
   openAddModal(): void {
     this.clearSelectedUser();
+    const defaultRolUuid = this.availableRoles().length > 0 ? this.availableRoles()[0].rol_uuid : '';
     this.addMemberForm.reset({
       search_query: '',
-      rol_uuid: '1e1eda23-9c30-4bca-8785-d802ad96c1c3',
+      rol_uuid: defaultRolUuid,
     });
     this.isAddModalOpen.set(true);
   }
