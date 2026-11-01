@@ -1,7 +1,8 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, effect, inject, signal } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { PatientsService } from '@services/patients.service';
+import { CompanyContextService } from '@services/company-context.service';
 import { ToastService } from '@services/toast.service';
 import { PatientInterface } from '@interfaces/patient';
 
@@ -14,6 +15,7 @@ import { PatientInterface } from '@interfaces/patient';
 })
 export class PatientsListComponent implements OnInit {
   readonly patientsService = inject(PatientsService);
+  readonly companyContext = inject(CompanyContextService);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
 
@@ -27,12 +29,24 @@ export class PatientsListComponent implements OnInit {
   readonly isLoading = this.patientsService.isLoading;
   readonly errorMessage = this.patientsService.errorMessage;
 
-  ngOnInit(): void {
-    this.reload();
+  constructor() {
+    // Reacciona automáticamente cada vez que el usuario cambia de clínica en la barra superior
+    effect(() => {
+      const activeCmp = this.companyContext.activeCompany();
+      if (activeCmp?.cmp_uuid) {
+        this.reload(activeCmp.cmp_uuid);
+      }
+    });
   }
 
-  reload(): void {
-    this.patientsService.getPatients().subscribe();
+  ngOnInit(): void {
+    const activeCmp = this.companyContext.activeCompany();
+    this.reload(activeCmp?.cmp_uuid);
+  }
+
+  reload(cmp_uuid?: string): void {
+    const targetCmp = cmp_uuid || this.companyContext.activeCompany()?.cmp_uuid;
+    this.patientsService.getPatients(targetCmp).subscribe();
   }
 
   onSearchChange(event: Event): void {

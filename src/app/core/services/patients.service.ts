@@ -96,24 +96,30 @@ export class PatientsService {
   constructor(private _http: HttpClient) {}
 
   /**
-   * @description Obtiene o recupera los datos correspondientes a patients desde la API.
+   * @description Obtiene o recupera los datos correspondientes a patients desde la API filtrados por clínica y/o UUID.
    *
+   * @param cmp_uuid Identificador de la clínica para aislamiento multi-tenant.
    * @param pat_uuid Parámetro pat_uuid opcional para filtrar.
    * @returns Observable con la respuesta de pacientes de la API.
    */
-  public getPatients(pat_uuid?: string): Observable<PatientResults> {
+  public getPatients(cmp_uuid?: string, pat_uuid?: string): Observable<PatientResults> {
     this.isLoading.set(true);
     this.errorMessage.set(null);
 
     const headers = new HttpHeaders().set('content-type', 'application/json');
 
-    let route = 'patients';
+    const queryParams: string[] = [];
+    if (cmp_uuid && cmp_uuid !== 'null') {
+      queryParams.push(`cmp_uuid=${encodeURIComponent(cmp_uuid)}`);
+    }
     if (pat_uuid && pat_uuid !== 'null') {
-      route += `?pat_uuid=${pat_uuid}`;
+      queryParams.push(`pat_uuid=${encodeURIComponent(pat_uuid)}`);
     }
 
+    const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
+
     return this._http
-      .get<PatientResults>(environment.apiUrl + route, { headers })
+      .get<PatientResults>(`${environment.apiUrl}patients${queryString}`, { headers })
       .pipe(
         tap({
           next: (res) => {
@@ -122,6 +128,8 @@ export class PatientsService {
             this.patients.set(list);
             if (list.length > 0 && !this.activePatient()) {
               this.activePatient.set(list[0]);
+            } else if (list.length === 0) {
+              this.activePatient.set(null);
             }
           },
           error: (err) => {
