@@ -47,4 +47,13 @@ export class CompanyService {
       headers: this.getAuthHeaders(),
     });
   }
+
+  /**
+   * @description Actualiza los datos y branding de una empresa/clínica existente.
+   */
+  updateCompany(cmp_uuid: string, company: Partial<CompanyEntity>): Observable<CompanySingleResult> {
+    return this.http.put<CompanySingleResult>(`${environment.apiUrl}company/${cmp_uuid}`, company, {
+      headers: this.getAuthHeaders(),
+    });
+  }
 }
