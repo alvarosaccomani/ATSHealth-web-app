@@ -60,7 +60,7 @@ export class EncounterComponent implements OnInit {
         } else {
           // Si no hay paciente seleccionado ni en la URL, volver al listado
           this.toast.info('Seleccioná un paciente para iniciar la consulta clínica.');
-          this.router.navigate(['/admin/application/patients']);
+          this.router.navigate(['/admin/user/patients']);
         }
       }
     });
@@ -82,20 +82,20 @@ export class EncounterComponent implements OnInit {
           const activeCmp = this.companyContext.activeCompany();
           if (activeCmp && patient.cmp_uuid && patient.cmp_uuid !== activeCmp.cmp_uuid) {
             this.toast.warning('El paciente solicitado pertenece a otra sede o clínica.');
-            this.router.navigate(['/admin/application/patients']);
+            this.router.navigate(['/admin/user/patients']);
             return;
           }
 
           this.patientsService.selectPatient(patient);
         } else {
           this.toast.error('No se encontró el paciente solicitado.');
-          this.router.navigate(['/admin/application/patients']);
+          this.router.navigate(['/admin/user/patients']);
         }
       },
       error: () => {
         this.isLoading.set(false);
         this.toast.error('Error al recuperar los datos del paciente.');
-        this.router.navigate(['/admin/application/patients']);
+        this.router.navigate(['/admin/user/patients']);
       },
     });
   }

@@ -31,12 +31,12 @@ export class SidebarComponent {
     {
       label: 'Pacientes',
       icon: 'fa-users',
-      route: '/admin/application/patients',
+      route: '/admin/user/patients',
     },
     {
       label: 'Consulta Activa',
       icon: 'fa-notes-medical',
-      route: '/admin/application/encounter',
+      route: '/admin/user/encounter',
     },
     {
       label: 'Equipo y Roles',

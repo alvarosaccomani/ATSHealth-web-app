@@ -1,49 +1,18 @@
 import { Routes } from '@angular/router';
-import { hasCompanyGuard } from '@guards/has-company.guard';
+import { adminRoleGuard } from '@guards/admin-role.guard';
 
 export const APPLICATION_ROUTES: Routes = [
   {
     path: '',
-    canActivate: [hasCompanyGuard],
+    canActivate: [adminRoleGuard],
     loadComponent: () =>
       import('./application-layout/application-layout.component').then(
         (c) => c.ApplicationLayoutComponent
       ),
     children: [
       {
-        path: 'patients',
-        loadComponent: () =>
-          import('./patients-list/patients-list.component').then(
-            (c) => c.PatientsListComponent
-          ),
-      },
-      {
-        path: 'patient',
-        loadComponent: () =>
-          import('./patient/patient.component').then((c) => c.PatientComponent),
-      },
-      {
-        path: 'patient/:pat_uuid',
-        loadComponent: () =>
-          import('./patient/patient.component').then((c) => c.PatientComponent),
-      },
-      {
-        path: 'encounter',
-        loadComponent: () =>
-          import('./encounter/encounter.component').then(
-            (c) => c.EncounterComponent
-          ),
-      },
-      {
-        path: 'encounter/:pat_uuid',
-        loadComponent: () =>
-          import('./encounter/encounter.component').then(
-            (c) => c.EncounterComponent
-          ),
-      },
-      {
         path: '',
-        redirectTo: 'patients',
+        redirectTo: '/admin/user/patients',
         pathMatch: 'full',
       },
     ],

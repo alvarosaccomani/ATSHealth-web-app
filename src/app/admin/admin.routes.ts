@@ -14,7 +14,7 @@ export const ADMIN_ROUTES: Routes = [
   },
   {
     path: '',
-    redirectTo: 'application',
+    redirectTo: 'user',
     pathMatch: 'full',
   },
 ];

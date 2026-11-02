@@ -16,5 +16,5 @@ export const adminRoleGuard: CanActivateFn = () => {
   }
 
   toast.warning('Acceso restringido: Se requieren permisos de administrador en esta clínica.');
-  return router.createUrlTree(['/admin/application/patients']);
+  return router.createUrlTree(['/admin/user/patients']);
 };

@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { adminRoleGuard } from '@guards/admin-role.guard';
+import { hasCompanyGuard } from '@guards/has-company.guard';
 
 export const USER_ROUTES: Routes = [
   {
@@ -9,6 +10,42 @@ export const USER_ROUTES: Routes = [
         (c) => c.UserLayoutComponent
       ),
     children: [
+      {
+        path: 'patients',
+        canActivate: [hasCompanyGuard],
+        loadComponent: () =>
+          import('./patients-list/patients-list.component').then(
+            (c) => c.PatientsListComponent
+          ),
+      },
+      {
+        path: 'patient',
+        canActivate: [hasCompanyGuard],
+        loadComponent: () =>
+          import('./patient/patient.component').then((c) => c.PatientComponent),
+      },
+      {
+        path: 'patient/:pat_uuid',
+        canActivate: [hasCompanyGuard],
+        loadComponent: () =>
+          import('./patient/patient.component').then((c) => c.PatientComponent),
+      },
+      {
+        path: 'encounter',
+        canActivate: [hasCompanyGuard],
+        loadComponent: () =>
+          import('./encounter/encounter.component').then(
+            (c) => c.EncounterComponent
+          ),
+      },
+      {
+        path: 'encounter/:pat_uuid',
+        canActivate: [hasCompanyGuard],
+        loadComponent: () =>
+          import('./encounter/encounter.component').then(
+            (c) => c.EncounterComponent
+          ),
+      },
       {
         path: 'company-onboarding',
         loadComponent: () =>
@@ -34,7 +71,7 @@ export const USER_ROUTES: Routes = [
       },
       {
         path: '',
-        redirectTo: 'company-onboarding',
+        redirectTo: 'patients',
         pathMatch: 'full',
       },
     ],

@@ -92,13 +92,13 @@ export class CompanyOnboardingComponent {
             this.toast.success(`¡Clínica "${created.cmp_name}" registrada con éxito!`);
             this.companyContext.setActiveCompany(created);
             this.companyContext.loadUserCompanies(usrUuid);
-            this.router.navigate(['/admin/application/patients']);
+            this.router.navigate(['/admin/user/patients']);
           },
           error: (err) => {
             this.isSubmitting.set(false);
             // Si la empresa se creó pero falló el link, al menos la activamos
             this.companyContext.setActiveCompany(created);
-            this.router.navigate(['/admin/application/patients']);
+            this.router.navigate(['/admin/user/patients']);
           },
         });
       },
@@ -148,7 +148,7 @@ export class CompanyOnboardingComponent {
             this.toast.success(`Te has vinculado a "${company.cmp_name || 'la clínica'}".`);
             this.companyContext.setActiveCompany(company);
             this.companyContext.loadUserCompanies(usrUuid);
-            this.router.navigate(['/admin/application/patients']);
+            this.router.navigate(['/admin/user/patients']);
           },
           error: (err) => {
             this.isSubmitting.set(false);

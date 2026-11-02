@@ -76,7 +76,7 @@ export class LoginComponent {
             this.companyContext.loadUserCompanies(userUuid).subscribe({
               next: (companies) => {
                 if (companies && companies.length > 0) {
-                  this.router.navigate(['/admin/application/patients']);
+                  this.router.navigate(['/admin/user/patients']);
                 } else {
                   this.toast.info('Completá la vinculación de tu consultorio o clínica para comenzar.');
                   this.router.navigate(['/admin/user/company-onboarding']);
@@ -87,7 +87,7 @@ export class LoginComponent {
               },
             });
           } else {
-            this.router.navigate(['/admin/application/patients']);
+            this.router.navigate(['/admin/user/patients']);
           }
         },
         error: (err) => {

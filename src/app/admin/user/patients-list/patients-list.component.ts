@@ -81,7 +81,7 @@ export class PatientsListComponent implements OnInit {
     this.toast.success(
       `Ficha clínica cargada para ${patient.pat_firstname} ${patient.pat_lastname}`
     );
-    this.router.navigate(['/admin/application/encounter', patient.pat_uuid]);
+    this.router.navigate(['/admin/user/encounter', patient.pat_uuid]);
   }
 
   viewDetails(patient: PatientInterface): void {

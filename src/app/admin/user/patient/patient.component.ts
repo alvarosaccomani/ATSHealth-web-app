@@ -137,7 +137,7 @@ export class PatientComponent implements OnInit {
         next: () => {
           this.isSaving.set(false);
           this.toast.success('Paciente actualizado con éxito.');
-          this.router.navigate(['/admin/application/patients']);
+          this.router.navigate(['/admin/user/patients']);
         },
         error: (err) => {
           this.isSaving.set(false);
@@ -153,7 +153,7 @@ export class PatientComponent implements OnInit {
         next: () => {
           this.isSaving.set(false);
           this.toast.success('Paciente registrado con éxito.');
-          this.router.navigate(['/admin/application/patients']);
+          this.router.navigate(['/admin/user/patients']);
         },
         error: (err) => {
           this.isSaving.set(false);
