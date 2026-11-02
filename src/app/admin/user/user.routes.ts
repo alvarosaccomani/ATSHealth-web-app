@@ -25,6 +25,14 @@ export const USER_ROUTES: Routes = [
           ),
       },
       {
+        path: 'company-profile',
+        canActivate: [adminRoleGuard],
+        loadComponent: () =>
+          import('./company-profile/company-profile.component').then(
+            (c) => c.CompanyProfileComponent
+          ),
+      },
+      {
         path: '',
         redirectTo: 'company-onboarding',
         pathMatch: 'full',
