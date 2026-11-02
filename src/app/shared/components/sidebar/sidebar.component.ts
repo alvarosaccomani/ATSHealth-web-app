@@ -10,6 +10,7 @@ interface NavItem {
   route: string;
   badge?: string;
   disabled?: boolean;
+  adminOnly?: boolean;
 }
 
 @Component({
@@ -41,6 +42,7 @@ export class SidebarComponent {
       label: 'Equipo y Roles',
       icon: 'fa-users-gear',
       route: '/admin/user/company-users',
+      adminOnly: true,
     },
     {
       label: 'Agenda de Turnos',
