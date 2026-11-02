@@ -149,13 +149,15 @@
 
             <!-- Items de perfil -->
             <div class="py-1">
-              <a
-                routerLink="/admin/user/company-users"
-                (click)="isUserDropdownOpen.set(false)"
-                class="flex items-center gap-2.5 px-4 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-darkBg-700 transition-colors cursor-pointer">
-                <i class="fa-solid fa-users-gear text-xs text-slate-400"></i>
-                <span>Equipo y Roles</span>
-              </a>
+              @if (companyContext.isAdmin()) {
+                <a
+                  routerLink="/admin/user/company-users"
+                  (click)="isUserDropdownOpen.set(false)"
+                  class="flex items-center gap-2.5 px-4 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-darkBg-700 transition-colors cursor-pointer">
+                  <i class="fa-solid fa-users-gear text-xs text-slate-400"></i>
+                  <span>Equipo y Roles</span>
+                </a>
+              }
               <a
                 routerLink="/admin/user/company-onboarding"
                 (click)="isUserDropdownOpen.set(false)"
