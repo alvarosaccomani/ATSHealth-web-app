@@ -1,1 +1,285 @@
-<p>company-profile works!</p>
+<main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+  
+  <!-- CABECERA -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div>
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-teal-50 dark:bg-teal-950/70 border border-teal-200 dark:border-teal-800 text-teal-700 dark:text-teal-300 mb-2 shadow-2xs">
+        <i class="fa-solid fa-sliders"></i> Configuración de Sede
+      </div>
+      <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+        Datos y Branding de la Clínica
+      </h1>
+      <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+        Personalizá la identidad visual, redes de contacto y datos institucionales de
+        <span class="font-bold text-teal-700 dark:text-teal-300">
+          {{ companyContext.activeCompany()?.cmp_name || 'tu clínica activa' }}
+        </span>.
+      </p>
+    </div>
+
+    <!-- ACCESO RÁPIDO A EQUIPO -->
+    <a
+      routerLink="/admin/user/company-users"
+      class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-darkBg-800 border border-slate-200 dark:border-darkBg-700 hover:bg-slate-50 dark:hover:bg-darkBg-750 transition-all cursor-pointer">
+      <i class="fa-solid fa-users-gear text-slate-400"></i>
+      <span>Gestionar Equipo</span>
+    </a>
+  </div>
+
+  <form [formGroup]="profileForm" (ngSubmit)="submitProfile()" class="space-y-8">
+
+    <!-- 1. IDENTIDAD VISUAL & BRANDING -->
+    <div class="bg-white dark:bg-darkBg-800 rounded-3xl border border-slate-200 dark:border-darkBg-700 shadow-xs p-6 sm:p-8">
+      <h2 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-1">
+        <i class="fa-solid fa-palette text-brand-600"></i> Identidad Visual y Colores
+      </h2>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mb-6">
+        Definí el logo, banner institucional y el color de marca de tu centro de salud.
+      </p>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+        <!-- LOGO INSTITUCIONAL -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
+            Logo Institucional
+          </label>
+          <div class="flex items-center gap-4">
+            <div class="w-20 h-20 rounded-2xl border-2 border-dashed border-slate-200 dark:border-darkBg-700 flex items-center justify-center overflow-hidden bg-slate-50 dark:bg-darkBg-900 shrink-0">
+              @if (logoPreview()) {
+                <img [src]="logoPreview()" alt="Logo preview" class="w-full h-full object-cover" />
+              } @else {
+                <i class="fa-solid fa-hospital text-2xl text-slate-300 dark:text-slate-600"></i>
+              }
+            </div>
+
+            <div class="space-y-2">
+              <label class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-darkBg-700 hover:bg-slate-200 dark:hover:bg-darkBg-600 cursor-pointer transition-colors">
+                <i class="fa-solid fa-arrow-up-from-bracket text-xs"></i>
+                <span>Subir Logo</span>
+                <input type="file" accept="image/*" (change)="onLogoSelected($event)" class="hidden" />
+              </label>
+
+              @if (logoPreview()) {
+                <button
+                  type="button"
+                  (click)="removeLogo()"
+                  class="block text-[11px] font-semibold text-rose-500 hover:text-rose-700 transition-colors cursor-pointer">
+                  <i class="fa-solid fa-trash-can mr-1"></i> Quitar logo
+                </button>
+              }
+              <p class="text-[10px] text-slate-400">Recomendado: PNG o JPG cuadrado (máx. 2MB)</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- COLOR INSTITUCIONAL -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
+            Color Primario de Marca
+          </label>
+          <div class="flex items-center gap-3">
+            <input
+              type="color"
+              formControlName="cmp_primarycolor"
+              class="w-12 h-12 rounded-xl border border-slate-200 dark:border-darkBg-700 cursor-pointer bg-transparent" />
+            <div>
+              <p class="text-xs font-mono font-bold text-slate-800 dark:text-slate-200 uppercase">
+                {{ profileForm.get('cmp_primarycolor')?.value }}
+              </p>
+              <p class="text-[10px] text-slate-400">Color característico utilizado en badges y reportes</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BANNER / PORTADA -->
+      <div class="mt-6 pt-6 border-t border-slate-100 dark:border-darkBg-700">
+        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
+          Banner o Portada Institucional (Opcional)
+        </label>
+        
+        @if (bannerPreview()) {
+          <div class="relative w-full h-32 rounded-2xl overflow-hidden border border-slate-200 dark:border-darkBg-700 mb-2">
+            <img [src]="bannerPreview()" alt="Banner preview" class="w-full h-full object-cover" />
+            <button
+              type="button"
+              (click)="removeBanner()"
+              class="absolute top-2 right-2 px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-900/80 text-white hover:bg-rose-600 transition-colors cursor-pointer">
+              <i class="fa-solid fa-xmark mr-1"></i> Quitar
+            </button>
+          </div>
+        }
+
+        <label class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-darkBg-700 hover:bg-slate-200 dark:hover:bg-darkBg-600 cursor-pointer transition-colors">
+          <i class="fa-solid fa-panorama text-xs"></i>
+          <span>{{ bannerPreview() ? 'Cambiar Banner' : 'Subir Banner' }}</span>
+          <input type="file" accept="image/*" (change)="onBannerSelected($event)" class="hidden" />
+        </label>
+        <span class="text-[10px] text-slate-400 ml-3">Recomendado: 1200x300 px (máx. 4MB)</span>
+      </div>
+    </div>
+
+    <!-- 2. INFORMACIÓN GENERAL & ESPECIALIDADES -->
+    <div class="bg-white dark:bg-darkBg-800 rounded-3xl border border-slate-200 dark:border-darkBg-700 shadow-xs p-6 sm:p-8">
+      <h2 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-1">
+        <i class="fa-solid fa-circle-info text-brand-600"></i> Información Institucional
+      </h2>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mb-6">
+        Nombre oficial de la clínica y descripción clínica de servicios.
+      </p>
+
+      <div class="space-y-5">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+            Nombre de la Clínica o Consultorio <span class="text-rose-500">*</span>
+          </label>
+          <input
+            type="text"
+            formControlName="cmp_name"
+            placeholder="Ej. Clínica PelviSalud Centro"
+            class="w-full px-3.5 py-2.5 rounded-xl text-xs bg-slate-50 dark:bg-darkBg-900 border border-slate-200 dark:border-darkBg-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500" />
+          @if (profileForm.get('cmp_name')?.touched && profileForm.get('cmp_name')?.invalid) {
+            <p class="text-[11px] text-rose-500 font-medium mt-1">El nombre de la clínica es requerido.</p>
+          }
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+            Descripción y Especialidades
+          </label>
+          <textarea
+            rows="3"
+            formControlName="cmp_description"
+            placeholder="Ej. Centro especializado en Uroginecología, Kinesiología de Piso Pélvico, Ecografía y Rehabilitación funcional."
+            class="w-full px-3.5 py-2.5 rounded-xl text-xs bg-slate-50 dark:bg-darkBg-900 border border-slate-200 dark:border-darkBg-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. CONTACTO, UBICACIÓN & REDES -->
+    <div class="bg-white dark:bg-darkBg-800 rounded-3xl border border-slate-200 dark:border-darkBg-700 shadow-xs p-6 sm:p-8">
+      <h2 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-1">
+        <i class="fa-solid fa-map-location-dot text-brand-600"></i> Contacto y Canales Oficiales
+      </h2>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mb-6">
+        Información de atención al paciente y canales digitales.
+      </p>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+            Dirección Física
+          </label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+              <i class="fa-solid fa-location-dot text-xs"></i>
+            </span>
+            <input
+              type="text"
+              formControlName="cmp_address"
+              placeholder="Ej. Av. Santa Fe 1234, CABA"
+              class="w-full pl-8 pr-3 py-2.5 rounded-xl text-xs bg-slate-50 dark:bg-darkBg-900 border border-slate-200 dark:border-darkBg-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+            Teléfono Fijo / Central
+          </label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+              <i class="fa-solid fa-phone text-xs"></i>
+            </span>
+            <input
+              type="text"
+              formControlName="cmp_phone"
+              placeholder="Ej. +54 11 4567-8900"
+              class="w-full pl-8 pr-3 py-2.5 rounded-xl text-xs bg-slate-50 dark:bg-darkBg-900 border border-slate-200 dark:border-darkBg-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+            Email Institucional
+          </label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+              <i class="fa-solid fa-envelope text-xs"></i>
+            </span>
+            <input
+              type="email"
+              formControlName="cmp_email"
+              placeholder="Ej. contacto@pelvisalud.com"
+              class="w-full pl-8 pr-3 py-2.5 rounded-xl text-xs bg-slate-50 dark:bg-darkBg-900 border border-slate-200 dark:border-darkBg-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+            WhatsApp de Turnos
+          </label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-emerald-500">
+              <i class="fa-brands fa-whatsapp text-sm"></i>
+            </span>
+            <input
+              type="text"
+              formControlName="cmp_whatsapp"
+              placeholder="Ej. +54 9 11 9876-5432"
+              class="w-full pl-8 pr-3 py-2.5 rounded-xl text-xs bg-slate-50 dark:bg-darkBg-900 border border-slate-200 dark:border-darkBg-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+            Instagram
+          </label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-pink-500">
+              <i class="fa-brands fa-instagram text-sm"></i>
+            </span>
+            <input
+              type="text"
+              formControlName="cmp_instagram"
+              placeholder="Ej. @pelvisalud"
+              class="w-full pl-8 pr-3 py-2.5 rounded-xl text-xs bg-slate-50 dark:bg-darkBg-900 border border-slate-200 dark:border-darkBg-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+            Facebook
+          </label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-blue-600">
+              <i class="fa-brands fa-facebook text-sm"></i>
+            </span>
+            <input
+              type="text"
+              formControlName="cmp_facebook"
+              placeholder="Ej. facebook.com/pelvisalud"
+              class="w-full pl-8 pr-3 py-2.5 rounded-xl text-xs bg-slate-50 dark:bg-darkBg-900 border border-slate-200 dark:border-darkBg-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTÓN DE GUARDAR -->
+    <div class="flex items-center justify-end gap-3 pt-2">
+      <button
+        type="submit"
+        [disabled]="isSubmitting()"
+        class="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-teal-600 to-brand-600 hover:from-teal-700 hover:to-brand-700 shadow-md shadow-brand-500/20 disabled:opacity-50 transition-all cursor-pointer">
+        @if (isSubmitting()) {
+          <i class="fa-solid fa-circle-notch fa-spin"></i>
+          <span>Guardando cambios...</span>
+        } @else {
+          <i class="fa-solid fa-floppy-disk"></i>
+          <span>Guardar Configuración</span>
+        }
+      </button>
+    </div>
+
+  </form>
+
+</main>
