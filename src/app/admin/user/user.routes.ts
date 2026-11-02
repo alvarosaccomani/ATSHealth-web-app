@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { adminRoleGuard } from '@guards/admin-role.guard';
 
 export const USER_ROUTES: Routes = [
   {
@@ -17,6 +18,7 @@ export const USER_ROUTES: Routes = [
       },
       {
         path: 'company-users',
+        canActivate: [adminRoleGuard],
         loadComponent: () =>
           import('./company-users/company-users.component').then(
             (c) => c.CompanyUsersComponent
