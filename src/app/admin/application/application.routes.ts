@@ -35,6 +35,13 @@ export const APPLICATION_ROUTES: Routes = [
           ),
       },
       {
+        path: 'encounter/:pat_uuid',
+        loadComponent: () =>
+          import('./encounter/encounter.component').then(
+            (c) => c.EncounterComponent
+          ),
+      },
+      {
         path: '',
         redirectTo: 'patients',
         pathMatch: 'full',
