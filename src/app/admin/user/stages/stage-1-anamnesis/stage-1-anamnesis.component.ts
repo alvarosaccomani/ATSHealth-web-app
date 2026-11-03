@@ -1,6 +1,6 @@
 import { Component, input, output, signal, computed } from '@angular/core';
 import { BiologicalSex } from '../../patient-sticky-bar/patient-sticky-bar.component';
-import { ConsentModalComponent } from '../../../../shared/components/consent-modal/consent-modal.component';
+import { ConsentModalComponent } from '@components/consent-modal/consent-modal.component';
 
 export interface BristolItem {
   type: number;
@@ -230,5 +230,26 @@ export class Stage1AnamnesisComponent {
 
   continueToStage2(): void {
     this.nextStage.emit(2);
+  }
+
+  getData(): Record<string, any> {
+    return {
+      consentStatus: this.consentStatus(),
+      obstetricPhase: this.obstetricPhase(),
+      iciq: {
+        freq: this.iciqFreq(),
+        vol: this.iciqVol(),
+        impact: this.iciqImpact(),
+        score: this.iciqScore(),
+        severity: this.iciqSeverity().label,
+      },
+      bristol: {
+        selectedType: this.selectedBristol(),
+      },
+      diary: {
+        entries: this.diaryRows(),
+        totals: this.diaryTotals(),
+      },
+    };
   }
 }
