@@ -128,4 +128,89 @@ export class Stage3TreatmentPlanComponent {
   goToNext(): void {
     this.nextStage.emit(4);
   }
+
+  getData(): Record<string, any> {
+    return {
+      summary: this.prescriptionSummary(),
+      standard: {
+        applyCine: this.applyCine(),
+        kegelContract: this.kegelContract(),
+        kegelRest: this.kegelRest(),
+        kegelSets: this.kegelSets(),
+        applyElectro: this.applyElectro(),
+        electroHz: this.electroHz(),
+        electroUs: this.electroUs(),
+        electroMin: this.electroMin(),
+        applyBiofeedback: this.applyBiofeedback(),
+        applyHome: this.applyHome(),
+      },
+      customTreatments: this.customTreatments(),
+    };
+  }
+
+  getTreatmentsPayload(): Array<{
+    enctr_kind: string;
+    enctr_code?: string | null;
+    enctr_name: string;
+    enctr_category?: string | null;
+    enctr_targetzone?: string | null;
+    enctr_dosageparameters: string;
+    enctr_frequency?: string | null;
+    enctr_homeprescription?: string | null;
+    enctr_isactive: boolean;
+  }> {
+    const list: Array<any> = [];
+
+    if (this.applyCine()) {
+      list.push({
+        enctr_kind: 'STANDARD_MODALITY',
+        enctr_code: 'kegel',
+        enctr_name: 'Cinesiterapia del Suelo Pélvico (Kegel)',
+        enctr_category: 'Cinesiterapia',
+        enctr_dosageparameters: `Contracción ${this.kegelContract()}s / Reposo ${this.kegelRest()}s / ${this.kegelSets()} series`,
+        enctr_frequency: 'Diario',
+        enctr_isactive: true,
+      });
+    }
+
+    if (this.applyElectro()) {
+      list.push({
+        enctr_kind: 'STANDARD_MODALITY',
+        enctr_code: 'electro',
+        enctr_name: 'Electroestimulación intracavitaria',
+        enctr_category: 'Electroterapia',
+        enctr_dosageparameters: `${this.electroHz()}Hz / ${this.electroUs()}µs / ${this.electroMin()} min`,
+        enctr_frequency: '2 veces por semana',
+        enctr_isactive: true,
+      });
+    }
+
+    if (this.applyBiofeedback()) {
+      list.push({
+        enctr_kind: 'STANDARD_MODALITY',
+        enctr_code: 'biofeedback',
+        enctr_name: 'Biofeedback EMG manométrico',
+        enctr_category: 'Reeducación neuromotora',
+        enctr_dosageparameters: '15 minutos con pautas de relajación',
+        enctr_frequency: 'Semanal',
+        enctr_isactive: true,
+      });
+    }
+
+    for (const ct of this.customTreatments()) {
+      list.push({
+        enctr_kind: 'CUSTOM_ADHOC',
+        enctr_code: ct.id,
+        enctr_name: ct.title,
+        enctr_category: ct.category,
+        enctr_targetzone: ct.zone,
+        enctr_dosageparameters: ct.parameters,
+        enctr_frequency: ct.frequency,
+        enctr_homeprescription: ct.homeCare,
+        enctr_isactive: true,
+      });
+    }
+
+    return list;
+  }
 }
