@@ -46,4 +46,16 @@ export class Stage2PhysicalExamComponent {
   goToNext(): void {
     this.nextStage.emit(3);
   }
+
+  getData(): Record<string, any> {
+    return {
+      oxfordGrade: this.oxfordGrade(),
+      perfect: {
+        power: this.perfectP(),
+        endurance: this.perfectE(),
+        repetitions: this.perfectR(),
+        fast: this.perfectF(),
+      },
+    };
+  }
 }
