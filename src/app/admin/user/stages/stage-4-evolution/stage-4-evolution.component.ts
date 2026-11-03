@@ -8,7 +8,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { ToastService } from '../../../../core/services/toast.service';
+import { ToastService } from '@services/toast.service';
 
 declare const Chart: any;
 
@@ -182,5 +182,12 @@ export class Stage4EvolutionComponent implements AfterViewInit, OnDestroy {
     this.isCompleted.set(true);
     this.toast.success('Consulta clínica cerrada y firmada digitalmente');
     this.completeConsultation.emit();
+  }
+
+  getData(): Record<string, any> {
+    return {
+      isCompleted: this.isCompleted(),
+      evolutionDate: new Date().toISOString(),
+    };
   }
 }
