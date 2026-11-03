@@ -128,10 +128,20 @@ export class PatientStickyBarComponent {
 
   saveRecord(): void {
     this.autosaveStatus.set('Guardando...');
-    setTimeout(() => {
-      this.autosaveStatus.set('Guardado recién');
-      this.toast.success('Consulta clínica y prescripción guardadas');
-    }, 500);
     this.onSave.emit();
+  }
+
+  setSavedStatus(status: string): void {
+    this.autosaveStatus.set(status);
+  }
+
+  getData(): Record<string, any> {
+    return {
+      consultDate: this.consultDate(),
+      consultReason: this.consultReason(),
+      consultJob: this.consultJob(),
+      consultGoal: this.consultGoal(),
+      sex: this.sex(),
+    };
   }
 }
