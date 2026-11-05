@@ -34,12 +34,65 @@
                 </span>
               }
             </div>
-            <!-- Estado Ficha -->
-            <div class="hidden sm:block">
-              <p class="text-xs text-slate-400 dark:text-slate-400 font-medium leading-none mb-1">Estado Ficha</p>
-              <span class="inline-flex items-center text-xs font-medium text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/80 px-2 py-0.5 rounded">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span> Consulta Activa
-              </span>
+            <!-- Sesión / Historial en Vista Compacta -->
+            <div class="relative hidden sm:block">
+              <p class="text-xs text-slate-400 dark:text-slate-400 font-medium leading-none mb-1">Sesión / Ficha</p>
+              <button
+                type="button"
+                (click)="toggleSessionDropdown($event)"
+                class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-0.5 rounded-md bg-teal-50 dark:bg-teal-950/70 border border-teal-200 dark:border-teal-800 text-teal-800 dark:text-teal-200 hover:bg-teal-100 transition-colors cursor-pointer">
+                <i class="fa-solid fa-clock-rotate-left text-[10px]"></i>
+                <span>{{ encountersService.activeEncounter() ? 'Sesión #' + encountersService.activeEncounter()!.enc_number : 'Nueva Sesión' }}</span>
+                @if (encountersService.patientHistory().length > 0) {
+                  <span class="px-1 rounded text-[10px] bg-teal-200 dark:bg-teal-800 text-teal-900 dark:text-teal-100 font-bold">
+                    {{ encountersService.patientHistory().length }}
+                  </span>
+                }
+                <i class="fa-solid fa-chevron-down text-[9px]"></i>
+              </button>
+
+              @if (isSessionDropdownOpen()) {
+                <div class="absolute left-0 mt-2 w-72 bg-white dark:bg-darkBg-800 rounded-2xl border border-slate-200 dark:border-darkBg-700 shadow-xl py-2 z-50 animate-fadeIn">
+                  <div class="px-3 py-1.5 border-b border-slate-100 dark:border-darkBg-700 mb-1 flex items-center justify-between">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Historial Clínico</span>
+                    <button
+                      type="button"
+                      (click)="selectSession(null)"
+                      class="text-[11px] font-bold text-teal-600 dark:text-teal-400 hover:underline cursor-pointer">
+                      + Nueva Sesión
+                    </button>
+                  </div>
+                  <div class="max-h-60 overflow-y-auto px-1 space-y-1">
+                    @for (enc of encountersService.patientHistory(); track enc.enc_uuid) {
+                      <button
+                        type="button"
+                        (click)="selectSession(enc)"
+                        class="w-full text-left px-3 py-2 rounded-xl text-xs transition-colors cursor-pointer flex items-center justify-between gap-2"
+                        [class.bg-teal-50]="encountersService.activeEncounter()?.enc_uuid === enc.enc_uuid"
+                        [class.dark:bg-teal-950/60]="encountersService.activeEncounter()?.enc_uuid === enc.enc_uuid"
+                        [class.hover:bg-slate-50]="encountersService.activeEncounter()?.enc_uuid !== enc.enc_uuid"
+                        [class.dark:hover:bg-darkBg-700]="encountersService.activeEncounter()?.enc_uuid !== enc.enc_uuid">
+                        <div class="truncate">
+                          <p class="font-bold text-slate-800 dark:text-slate-100 truncate">
+                            Sesión #{{ enc.enc_number }} • {{ enc.enc_date | date:'dd/MM/yyyy' }}
+                          </p>
+                          <p class="text-[10px] text-slate-400 truncate">
+                            {{ enc.enc_reason || 'Sin motivo especificado' }}
+                          </p>
+                        </div>
+                        <span 
+                          class="shrink-0 text-[9px] font-bold px-1.5 py-0.5 rounded"
+                          [class.bg-emerald-100]="enc.enc_status === 'SIGNED_LOCKED'"
+                          [class.text-emerald-700]="enc.enc_status === 'SIGNED_LOCKED'"
+                          [class.bg-amber-100]="enc.enc_status !== 'SIGNED_LOCKED'"
+                          [class.text-amber-700]="enc.enc_status !== 'SIGNED_LOCKED'">
+                          {{ enc.enc_status === 'SIGNED_LOCKED' ? 'Firmada' : 'Borrador' }}
+                        </span>
+                      </button>
+                    }
+                  </div>
+                </div>
+              }
             </div>
           </div>
 
@@ -101,6 +154,66 @@
                     <span class="text-xs px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-darkBg-700 font-semibold text-slate-600 dark:text-slate-300">{{ age() }} años</span>
                   }
                   <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-medium">HC: {{ historyNumber() }}</span>
+
+                  <!-- Selector de Sesión en Vista Expandida -->
+                  <div class="relative inline-block">
+                    <button
+                      type="button"
+                      (click)="toggleSessionDropdown($event)"
+                      class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-teal-50 dark:bg-teal-950/70 border border-teal-200 dark:border-teal-800 text-teal-800 dark:text-teal-200 hover:bg-teal-100 transition-colors cursor-pointer">
+                      <i class="fa-solid fa-clock-rotate-left text-[10px]"></i>
+                      <span>{{ encountersService.activeEncounter() ? 'Sesión #' + encountersService.activeEncounter()!.enc_number : 'Nueva Sesión' }}</span>
+                      @if (encountersService.patientHistory().length > 0) {
+                        <span class="px-1.5 py-0.2 rounded-full text-[9px] bg-teal-200 dark:bg-teal-800 text-teal-900 dark:text-teal-100 font-bold">
+                          {{ encountersService.patientHistory().length }}
+                        </span>
+                      }
+                      <i class="fa-solid fa-chevron-down text-[9px]"></i>
+                    </button>
+
+                    @if (isSessionDropdownOpen()) {
+                      <div class="absolute left-0 mt-2 w-72 bg-white dark:bg-darkBg-800 rounded-2xl border border-slate-200 dark:border-darkBg-700 shadow-xl py-2 z-50 animate-fadeIn">
+                        <div class="px-3 py-1.5 border-b border-slate-100 dark:border-darkBg-700 mb-1 flex items-center justify-between">
+                          <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Historial Clínico</span>
+                          <button
+                            type="button"
+                            (click)="selectSession(null)"
+                            class="text-[11px] font-bold text-teal-600 dark:text-teal-400 hover:underline cursor-pointer">
+                            + Nueva Sesión
+                          </button>
+                        </div>
+                        <div class="max-h-60 overflow-y-auto px-1 space-y-1">
+                          @for (enc of encountersService.patientHistory(); track enc.enc_uuid) {
+                            <button
+                              type="button"
+                              (click)="selectSession(enc)"
+                              class="w-full text-left px-3 py-2 rounded-xl text-xs transition-colors cursor-pointer flex items-center justify-between gap-2"
+                              [class.bg-teal-50]="encountersService.activeEncounter()?.enc_uuid === enc.enc_uuid"
+                              [class.dark:bg-teal-950/60]="encountersService.activeEncounter()?.enc_uuid === enc.enc_uuid"
+                              [class.hover:bg-slate-50]="encountersService.activeEncounter()?.enc_uuid !== enc.enc_uuid"
+                              [class.dark:hover:bg-darkBg-700]="encountersService.activeEncounter()?.enc_uuid !== enc.enc_uuid">
+                              <div class="truncate">
+                                <p class="font-bold text-slate-800 dark:text-slate-100 truncate">
+                                  Sesión #{{ enc.enc_number }} • {{ enc.enc_date | date:'dd/MM/yyyy' }}
+                                </p>
+                                <p class="text-[10px] text-slate-400 truncate">
+                                  {{ enc.enc_reason || 'Sin motivo especificado' }}
+                                </p>
+                              </div>
+                              <span 
+                                class="shrink-0 text-[9px] font-bold px-1.5 py-0.5 rounded"
+                                [class.bg-emerald-100]="enc.enc_status === 'SIGNED_LOCKED'"
+                                [class.text-emerald-700]="enc.enc_status === 'SIGNED_LOCKED'"
+                                [class.bg-amber-100]="enc.enc_status !== 'SIGNED_LOCKED'"
+                                [class.text-amber-700]="enc.enc_status !== 'SIGNED_LOCKED'">
+                                {{ enc.enc_status === 'SIGNED_LOCKED' ? 'Firmada' : 'Borrador' }}
+                              </span>
+                            </button>
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
                 </div>
                 <p class="text-xs text-slate-400 dark:text-slate-400 mt-0.5">DNI: {{ dni() }} • OS/Prepaga: {{ healthInsurance() }} • Profesional: {{ professional() }}</p>
               </div>

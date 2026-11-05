@@ -1,13 +1,16 @@
 import { Component, HostListener, effect, inject, output, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { ToastService } from '@services/toast.service';
 import { PatientsService } from '@services/patients.service';
 import { AuthService } from '@services/auth.service';
+import { EncountersService } from '@services/encounters.service';
+import { EncounterInterface } from '@interfaces/encounter';
 
 export type BiologicalSex = 'femenino' | 'masculino';
 
 @Component({
   selector: 'app-patient-sticky-bar',
-  imports: [],
+  imports: [DatePipe],
   templateUrl: './patient-sticky-bar.component.html',
   styleUrl: './patient-sticky-bar.component.scss',
 })
@@ -15,9 +18,13 @@ export class PatientStickyBarComponent {
   private readonly toast = inject(ToastService);
   private readonly patientsService = inject(PatientsService, { optional: true });
   private readonly authService = inject(AuthService, { optional: true });
+  readonly encountersService = inject(EncountersService);
 
   readonly sex = signal<BiologicalSex>('femenino');
   readonly sexChange = output<BiologicalSex>();
+  readonly sessionSelect = output<EncounterInterface | null>();
+
+  readonly isSessionDropdownOpen = signal<boolean>(false);
 
   readonly patientName = signal<string>('');
   readonly age = signal<number | null>(null);
@@ -124,6 +131,54 @@ export class PatientStickyBarComponent {
       window.print();
     }
     this.onPrint.emit();
+  }
+
+  toggleSessionDropdown(event: Event): void {
+    event.stopPropagation();
+    this.isSessionDropdownOpen.update((v) => !v);
+  }
+
+  selectSession(enc: EncounterInterface | null): void {
+    this.isSessionDropdownOpen.set(false);
+    this.sessionSelect.emit(enc);
+  }
+
+  hydrateEncounter(encounter: EncounterInterface | null): void {
+    if (!encounter) {
+      this.consultDate.set(new Date().toISOString().split('T')[0]);
+      this.consultReason.set('');
+      this.consultJob.set('');
+      this.consultGoal.set('');
+      this.autosaveStatus.set('Autoguardado activo');
+      return;
+    }
+
+    if (encounter.enc_date) {
+      const dateStr =
+        typeof encounter.enc_date === 'string'
+          ? encounter.enc_date.split('T')[0]
+          : new Date(encounter.enc_date).toISOString().split('T')[0];
+      this.consultDate.set(dateStr);
+    }
+    if (encounter.enc_reason) {
+      this.consultReason.set(encounter.enc_reason);
+    }
+    const formData = encounter.encounter_data?.encd_formdata;
+    if (formData?.['consultJob']) {
+      this.consultJob.set(formData['consultJob']);
+    }
+    if (formData?.['consultGoal']) {
+      this.consultGoal.set(formData['consultGoal']);
+    }
+    if (encounter.practitioner) {
+      const name = `${encounter.practitioner.usr_name || ''} ${encounter.practitioner.usr_surname || ''}`.trim();
+      if (name) {
+        this.professional.set(`Lic. ${name}`);
+      }
+    }
+    this.autosaveStatus.set(
+      encounter.enc_status === 'SIGNED_LOCKED' ? 'Consulta firmada' : 'Guardado previo'
+    );
   }
 
   saveRecord(): void {
