@@ -252,4 +252,21 @@ export class Stage1AnamnesisComponent {
       },
     };
   }
+
+  hydrateData(data: Record<string, any>): void {
+    if (!data) return;
+    if (data['consentStatus']) this.consentStatus.set(data['consentStatus']);
+    if (data['obstetricPhase']) this.obstetricPhase.set(data['obstetricPhase']);
+    if (data['iciq']) {
+      if (typeof data['iciq'].freq === 'number') this.iciqFreq.set(data['iciq'].freq);
+      if (typeof data['iciq'].vol === 'number') this.iciqVol.set(data['iciq'].vol);
+      if (typeof data['iciq'].impact === 'number') this.iciqImpact.set(data['iciq'].impact);
+    }
+    if (data['bristol'] && typeof data['bristol'].selectedType === 'number') {
+      this.selectedBristol.set(data['bristol'].selectedType);
+    }
+    if (data['diary'] && Array.isArray(data['diary'].entries)) {
+      this.diaryRows.set(data['diary'].entries);
+    }
+  }
 }
