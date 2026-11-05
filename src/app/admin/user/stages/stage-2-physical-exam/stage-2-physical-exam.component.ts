@@ -58,4 +58,17 @@ export class Stage2PhysicalExamComponent {
       },
     };
   }
+
+  hydrateData(data: Record<string, any>): void {
+    if (!data) return;
+    if (typeof data['oxfordGrade'] === 'number') {
+      this.oxfordGrade.set(data['oxfordGrade']);
+    }
+    if (data['perfect']) {
+      if (typeof data['perfect'].power === 'number') this.perfectP.set(data['perfect'].power);
+      if (typeof data['perfect'].endurance === 'number') this.perfectE.set(data['perfect'].endurance);
+      if (typeof data['perfect'].repetitions === 'number') this.perfectR.set(data['perfect'].repetitions);
+      if (typeof data['perfect'].fast === 'number') this.perfectF.set(data['perfect'].fast);
+    }
+  }
 }
