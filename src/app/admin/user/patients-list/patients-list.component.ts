@@ -3,8 +3,10 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { PatientsService } from '@services/patients.service';
 import { CompanyContextService } from '@services/company-context.service';
+import { EncountersService } from '@services/encounters.service';
 import { ToastService } from '@services/toast.service';
 import { PatientInterface } from '@interfaces/patient';
+import { EncounterInterface } from '@interfaces/encounter';
 
 @Component({
   selector: 'app-patients-list',
@@ -16,10 +18,13 @@ import { PatientInterface } from '@interfaces/patient';
 export class PatientsListComponent implements OnInit {
   readonly patientsService = inject(PatientsService);
   readonly companyContext = inject(CompanyContextService);
+  readonly encountersService = inject(EncountersService);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
 
   readonly selectedPatientModal = signal<PatientInterface | null>(null);
+  readonly patientHistory = signal<EncounterInterface[]>([]);
+  readonly isLoadingHistory = signal<boolean>(false);
 
   readonly patients = this.patientsService.filteredPatients;
   readonly stats = this.patientsService.stats;
@@ -77,6 +82,7 @@ export class PatientsListComponent implements OnInit {
   }
 
   openRecord(patient: PatientInterface): void {
+    this.encountersService.clearActiveEncounter();
     this.patientsService.selectPatient(patient);
     this.toast.success(
       `Ficha clínica cargada para ${patient.pat_firstname} ${patient.pat_lastname}`
@@ -86,10 +92,33 @@ export class PatientsListComponent implements OnInit {
 
   viewDetails(patient: PatientInterface): void {
     this.selectedPatientModal.set(patient);
+    this.patientHistory.set([]);
+    this.isLoadingHistory.set(true);
+
+    const targetCmp = patient.cmp_uuid || this.companyContext.activeCompany()?.cmp_uuid || '';
+    this.encountersService.getEncountersByPatient(patient.pat_uuid, targetCmp).subscribe({
+      next: (res) => {
+        this.isLoadingHistory.set(false);
+        this.patientHistory.set(res?.data || []);
+      },
+      error: () => {
+        this.isLoadingHistory.set(false);
+        this.patientHistory.set([]);
+      },
+    });
+  }
+
+  openEncounter(patient: PatientInterface, encounter: EncounterInterface): void {
+    this.patientsService.selectPatient(patient);
+    this.encountersService.selectEncounter(encounter);
+    this.closeDetails();
+    this.toast.info(`Cargando Sesión #${encounter.enc_number} de ${patient.pat_firstname} ${patient.pat_lastname}`);
+    this.router.navigate(['/admin/user/encounter', patient.pat_uuid]);
   }
 
   closeDetails(): void {
     this.selectedPatientModal.set(null);
+    this.patientHistory.set([]);
   }
 
   toggleActive(patient: PatientInterface, event: Event): void {
