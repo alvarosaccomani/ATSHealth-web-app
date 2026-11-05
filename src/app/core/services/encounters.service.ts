@@ -17,10 +17,19 @@ export class EncountersService {
   private readonly http = inject(HttpClient);
 
   readonly encounters = signal<EncounterInterface[]>([]);
+  readonly patientHistory = this.encounters.asReadonly();
   readonly activeEncounter = signal<EncounterInterface | null>(null);
   readonly isLoading = signal<boolean>(false);
   readonly isSaving = signal<boolean>(false);
   readonly errorMessage = signal<string | null>(null);
+
+  selectEncounter(encounter: EncounterInterface | null): void {
+    this.activeEncounter.set(encounter);
+  }
+
+  clearActiveEncounter(): void {
+    this.activeEncounter.set(null);
+  }
 
   /**
    * @description Registra o guarda una nueva consulta médica clínica.
