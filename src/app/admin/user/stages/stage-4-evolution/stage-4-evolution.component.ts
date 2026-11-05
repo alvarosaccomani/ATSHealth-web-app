@@ -190,4 +190,11 @@ export class Stage4EvolutionComponent implements AfterViewInit, OnDestroy {
       evolutionDate: new Date().toISOString(),
     };
   }
+
+  hydrateData(data: Record<string, any>): void {
+    if (!data) return;
+    if (typeof data['isCompleted'] === 'boolean') {
+      this.isCompleted.set(data['isCompleted']);
+    }
+  }
 }
