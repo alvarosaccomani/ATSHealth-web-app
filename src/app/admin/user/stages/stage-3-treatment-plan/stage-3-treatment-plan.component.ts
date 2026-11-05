@@ -148,6 +148,42 @@ export class Stage3TreatmentPlanComponent {
     };
   }
 
+  hydrateData(data: Record<string, any>, treatments?: any[]): void {
+    if (data?.['standard']) {
+      const std = data['standard'];
+      if (typeof std.applyCine === 'boolean') this.applyCine.set(std.applyCine);
+      if (typeof std.kegelContract === 'number') this.kegelContract.set(std.kegelContract);
+      if (typeof std.kegelRest === 'number') this.kegelRest.set(std.kegelRest);
+      if (typeof std.kegelSets === 'number') this.kegelSets.set(std.kegelSets);
+      if (typeof std.applyElectro === 'boolean') this.applyElectro.set(std.applyElectro);
+      if (typeof std.electroHz === 'number') this.electroHz.set(std.electroHz);
+      if (typeof std.electroUs === 'number') this.electroUs.set(std.electroUs);
+      if (typeof std.electroMin === 'number') this.electroMin.set(std.electroMin);
+      if (typeof std.applyBiofeedback === 'boolean') this.applyBiofeedback.set(std.applyBiofeedback);
+      if (typeof std.applyHome === 'boolean') this.applyHome.set(std.applyHome);
+    }
+    if (data?.['customTreatments'] && Array.isArray(data['customTreatments'])) {
+      this.customTreatments.set(data['customTreatments']);
+    } else if (treatments && Array.isArray(treatments)) {
+      const customs = treatments
+        .filter((t: any) => t.enctr_kind === 'CUSTOM_ADHOC')
+        .map((t: any, idx: number) => ({
+          id: t.enctr_uuid || `tx-${idx + 1}`,
+          title: t.enctr_name,
+          technique: t.enctr_name,
+          category: t.enctr_category || 'Terapia personalizada',
+          zone: t.enctr_targetzone || 'Pelviana',
+          parameters: t.enctr_dosageparameters || '',
+          frequency: t.enctr_frequency || 'A demanda',
+          goal: '',
+          homeCare: t.enctr_homeprescription || '',
+        }));
+      if (customs.length > 0) {
+        this.customTreatments.set(customs);
+      }
+    }
+  }
+
   getTreatmentsPayload(): Array<{
     enctr_kind: string;
     enctr_code?: string | null;
