@@ -2,6 +2,7 @@
   #stickyBar
   (sexChange)="activeSex.set($event)"
   (onSave)="saveConsultation()"
+  (sessionSelect)="loadEncounter($event)"
 />
 <app-stage-bar [(currentStage)]="activeStage" />
 <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 w-full flex-1">

@@ -11,7 +11,7 @@ import { CompanyContextService } from '@services/company-context.service';
 import { AuthService } from '@services/auth.service';
 import { EncountersService } from '@services/encounters.service';
 import { ToastService } from '@services/toast.service';
-import { CreateEncounterPayload } from '@interfaces/encounter';
+import { CreateEncounterPayload, EncounterInterface } from '@interfaces/encounter';
 
 @Component({
   selector: 'app-encounter',
@@ -33,7 +33,7 @@ export class EncounterComponent implements OnInit {
   readonly patientsService = inject(PatientsService);
   readonly companyContext = inject(CompanyContextService);
   private readonly authService = inject(AuthService);
-  private readonly encountersService = inject(EncountersService);
+  readonly encountersService = inject(EncountersService);
   private readonly toast = inject(ToastService);
 
   readonly stickyBar = viewChild<PatientStickyBarComponent>('stickyBar');
@@ -68,6 +68,7 @@ export class EncounterComponent implements OnInit {
         if (current) {
           const bioSex = (current.pat_biologicalsex?.toLowerCase() as BiologicalSex) || 'femenino';
           this.activeSex.set(bioSex);
+          this.loadPatientHistory(current.pat_uuid);
         } else {
           this.toast.info('Seleccioná un paciente para iniciar la consulta clínica.');
           this.router.navigate(['/admin/user/patients']);
@@ -79,6 +80,7 @@ export class EncounterComponent implements OnInit {
   private loadPatient(pat_uuid: string): void {
     const current = this.patientsService.activePatient();
     if (current && current.pat_uuid === pat_uuid) {
+      this.loadPatientHistory(pat_uuid);
       return;
     }
 
@@ -96,6 +98,7 @@ export class EncounterComponent implements OnInit {
           }
 
           this.patientsService.selectPatient(patient);
+          this.loadPatientHistory(patient.pat_uuid);
         } else {
           this.toast.error('No se encontró el paciente solicitado.');
           this.router.navigate(['/admin/user/patients']);
@@ -107,6 +110,59 @@ export class EncounterComponent implements OnInit {
         this.router.navigate(['/admin/user/patients']);
       },
     });
+  }
+
+  loadPatientHistory(pat_uuid: string): void {
+    const activeCmp = this.companyContext.activeCompany();
+    if (!activeCmp?.cmp_uuid || !pat_uuid) return;
+
+    this.encountersService.getEncountersByPatient(pat_uuid, activeCmp.cmp_uuid).subscribe({
+      next: (res) => {
+        const history = res?.data || [];
+        const active = this.encountersService.activeEncounter();
+        if (active) {
+          this.loadEncounter(active);
+        } else if (history.length > 0) {
+          // Hidratar con la última consulta registrada
+          this.loadEncounter(history[0]);
+        }
+      },
+      error: () => {
+        // No bloquear si el paciente aún no tiene historial
+      },
+    });
+  }
+
+  loadEncounter(encounter: EncounterInterface | null): void {
+    if (!encounter) {
+      this.encountersService.clearActiveEncounter();
+      this.stickyBar()?.hydrateEncounter(null);
+      this.toast.info('Nueva sesión clínica iniciada en blanco.');
+      return;
+    }
+
+    this.encountersService.selectEncounter(encounter);
+    this.stickyBar()?.hydrateEncounter(encounter);
+
+    const formData = encounter.encounter_data?.encd_formdata;
+    if (formData) {
+      if (formData['anamnesis']) {
+        this.stage1()?.hydrateData(formData['anamnesis']);
+      }
+      if (formData['physical_exam']) {
+        this.stage2()?.hydrateData(formData['physical_exam']);
+      }
+      if (formData['treatment_plan']) {
+        this.stage3()?.hydrateData(formData['treatment_plan'], encounter.treatments);
+      }
+      if (formData['evolution']) {
+        this.stage4()?.hydrateData(formData['evolution']);
+      }
+    } else if (encounter.treatments) {
+      this.stage3()?.hydrateData({}, encounter.treatments);
+    }
+
+    this.toast.info(`Cargada Sesión #${encounter.enc_number || 1}`);
   }
 
   saveConsultation(isCompleted: boolean = false): void {
@@ -158,12 +214,18 @@ export class EncounterComponent implements OnInit {
 
     this.encountersService.saveEncounter(payload).subscribe({
       next: () => {
-        this.stickyBar()?.setSavedStatus('Guardado recién');
+        const enc = this.encountersService.activeEncounter();
+        const sessionLabel = enc?.enc_number ? `Sesión #${enc.enc_number}` : 'Consulta';
+        this.stickyBar()?.setSavedStatus(`${sessionLabel} guardada`);
         this.toast.success(
           isCompleted
-            ? '¡Consulta médica finalizada y firmada con éxito!'
-            : 'Consulta médica guardada correctamente.'
+            ? `¡${sessionLabel} finalizada y firmada con éxito!`
+            : `¡${sessionLabel} guardada correctamente!`
         );
+
+        if (activePat.pat_uuid) {
+          this.loadPatientHistory(activePat.pat_uuid);
+        }
       },
       error: (err) => {
         this.stickyBar()?.setSavedStatus('Error al guardar');
