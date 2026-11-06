@@ -7,6 +7,7 @@ import {
   CreateEncounterPayload,
   EncounterInterface,
   EncounterSingleResult,
+  UpdateEncounterPayload,
 } from '@interfaces/encounter';
 import { SingleResult } from '@interfaces/common';
 
@@ -143,17 +144,22 @@ export class EncountersService {
    */
   updateEncounter(
     enc_uuid: string,
-    payload: Partial<CreateEncounterPayload>
+    cmp_uuid: string,
+    payload: UpdateEncounterPayload
   ): Observable<EncounterSingleResult> {
     this.isSaving.set(true);
     this.errorMessage.set(null);
 
-    const headers = new HttpHeaders().set('content-type', 'application/json');
+    const headers = new HttpHeaders()
+      .set('content-type', 'application/json')
+      .set('x-company-uuid', cmp_uuid);
+
+    const body = { ...payload, cmp_uuid };
 
     return this.http
       .put<EncounterSingleResult>(
-        `${environment.apiUrl}encounter/${enc_uuid}`,
-        payload,
+        `${environment.apiUrl}encounter/${enc_uuid}?cmp_uuid=${encodeURIComponent(cmp_uuid)}`,
+        body,
         { headers }
       )
       .pipe(
@@ -162,6 +168,9 @@ export class EncountersService {
             this.isSaving.set(false);
             if (res?.data) {
               this.activeEncounter.set(res.data);
+              this.encounters.update((list) =>
+                list.map((item) => (item.enc_uuid === res.data.enc_uuid ? res.data : item))
+              );
             }
           },
           error: (err) => {
@@ -175,5 +184,21 @@ export class EncountersService {
           },
         })
       );
+  }
+
+  /**
+   * @description Bloquea y firma una consulta médica finalizada (transición a SIGNED_LOCKED).
+   */
+  signAndLockEncounter(
+    enc_uuid: string,
+    cmp_uuid: string,
+    usr_uuid: string
+  ): Observable<EncounterSingleResult> {
+    const payload: UpdateEncounterPayload = {
+      enc_status: 'SIGNED_LOCKED',
+      enc_signedat: new Date().toISOString(),
+      enc_signedby: usr_uuid,
+    };
+    return this.updateEncounter(enc_uuid, cmp_uuid, payload);
   }
 }
