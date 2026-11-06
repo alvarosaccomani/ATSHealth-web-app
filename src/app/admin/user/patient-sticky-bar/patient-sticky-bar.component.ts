@@ -4,6 +4,7 @@ import { ToastService } from '@services/toast.service';
 import { PatientsService } from '@services/patients.service';
 import { AuthService } from '@services/auth.service';
 import { EncountersService } from '@services/encounters.service';
+import { TemplatesService } from '@services/templates.service';
 import { EncounterInterface } from '@interfaces/encounter';
 
 export type BiologicalSex = 'femenino' | 'masculino';
@@ -19,6 +20,7 @@ export class PatientStickyBarComponent {
   private readonly patientsService = inject(PatientsService, { optional: true });
   private readonly authService = inject(AuthService, { optional: true });
   readonly encountersService = inject(EncountersService);
+  readonly templatesService = inject(TemplatesService);
 
   readonly sex = signal<BiologicalSex>('femenino');
   readonly sexChange = output<BiologicalSex>();
@@ -30,6 +32,7 @@ export class PatientStickyBarComponent {
   readonly isSessionDropdownOpen = signal<boolean>(false);
   readonly isLocked = computed(() => this.encountersService.activeEncounter()?.enc_status === 'SIGNED_LOCKED');
   readonly hasActiveSession = computed(() => !!this.encountersService.activeEncounter()?.enc_uuid);
+  readonly activeTemplateName = computed(() => this.templatesService.activeTemplate()?.tpl_name || 'Evaluación Piso Pélvico');
 
   readonly patientName = signal<string>('');
   readonly age = signal<number | null>(null);
