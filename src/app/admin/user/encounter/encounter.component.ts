@@ -11,7 +11,11 @@ import { CompanyContextService } from '@services/company-context.service';
 import { AuthService } from '@services/auth.service';
 import { EncountersService } from '@services/encounters.service';
 import { ToastService } from '@services/toast.service';
-import { CreateEncounterPayload, EncounterInterface } from '@interfaces/encounter';
+import {
+  CreateEncounterPayload,
+  EncounterInterface,
+  UpdateEncounterPayload,
+} from '@interfaces/encounter';
 
 @Component({
   selector: 'app-encounter',
@@ -179,6 +183,14 @@ export class EncounterComponent implements OnInit {
       return;
     }
 
+    const activeEnc = this.encountersService.activeEncounter();
+
+    // Regla de inmutabilidad: no permitir editar consultas firmadas
+    if (activeEnc?.enc_status === 'SIGNED_LOCKED') {
+      this.toast.warning('Esta consulta ya fue firmada y bloqueada; no admite modificaciones posteriores.');
+      return;
+    }
+
     const sticky = this.stickyBar()?.getData();
     const s1 = this.stage1()?.getData();
     const s2 = this.stage2()?.getData();
@@ -186,6 +198,60 @@ export class EncounterComponent implements OnInit {
     const s4 = this.stage4()?.getData();
     const treatments = this.stage3()?.getTreatmentsPayload() || [];
 
+    const formData = {
+      anamnesis: s1,
+      physical_exam: s2,
+      treatment_plan: s3,
+      evolution: s4,
+      consultJob: sticky?.['consultJob'],
+      consultGoal: sticky?.['consultGoal'],
+    };
+
+    const calculatedScores = {
+      iciq_score: s1?.['iciq']?.score ?? null,
+      iciq_severity: s1?.['iciq']?.severity ?? null,
+      oxford_grade: s2?.['oxfordGrade'] ?? null,
+      perfect_power: s2?.['perfect']?.power ?? null,
+      bristol_type: s1?.['bristol']?.selectedType ?? null,
+    };
+
+    // BIFURCACIÓN: Actualización si ya existe la sesión y está IN_PROGRESS
+    if (activeEnc?.enc_uuid && activeEnc.enc_status === 'IN_PROGRESS') {
+      const updatePayload: UpdateEncounterPayload = {
+        enc_status: isCompleted ? 'SIGNED_LOCKED' : 'IN_PROGRESS',
+        enc_reason: sticky?.['consultReason'] || null,
+        enc_signedat: isCompleted ? new Date().toISOString() : undefined,
+        enc_signedby: isCompleted ? currentUser?.usr_uuid : undefined,
+        form_data: formData,
+        calculated_scores: calculatedScores,
+        treatments,
+      };
+
+      this.encountersService.updateEncounter(activeEnc.enc_uuid, activeCmp.cmp_uuid, updatePayload).subscribe({
+        next: (res) => {
+          const enc = res?.data || this.encountersService.activeEncounter();
+          const sessionLabel = enc?.enc_number ? `Sesión #${enc.enc_number}` : 'Consulta';
+          this.stickyBar()?.setSavedStatus(isCompleted ? 'Consulta firmada' : `${sessionLabel} actualizada`);
+          this.toast.success(
+            isCompleted
+              ? `¡${sessionLabel} firmada y bloqueada con éxito!`
+              : `¡${sessionLabel} actualizada correctamente!`
+          );
+
+          if (activePat.pat_uuid) {
+            this.loadPatientHistory(activePat.pat_uuid);
+          }
+        },
+        error: (err) => {
+          this.stickyBar()?.setSavedStatus('Error al actualizar');
+          const msg = err?.error?.message || err?.message || 'Error al actualizar la consulta.';
+          this.toast.error(msg);
+        },
+      });
+      return;
+    }
+
+    // CREACIÓN de nueva sesión en blanco
     const payload: CreateEncounterPayload = {
       cmp_uuid: activeCmp.cmp_uuid,
       pat_uuid: activePat.pat_uuid,
@@ -194,21 +260,8 @@ export class EncounterComponent implements OnInit {
       enc_status: isCompleted ? 'SIGNED_LOCKED' : 'IN_PROGRESS',
       enc_date: sticky?.['consultDate'] || new Date().toISOString(),
       enc_reason: sticky?.['consultReason'] || null,
-      form_data: {
-        anamnesis: s1,
-        physical_exam: s2,
-        treatment_plan: s3,
-        evolution: s4,
-        consultJob: sticky?.['consultJob'],
-        consultGoal: sticky?.['consultGoal'],
-      },
-      calculated_scores: {
-        iciq_score: s1?.['iciq']?.score ?? null,
-        iciq_severity: s1?.['iciq']?.severity ?? null,
-        oxford_grade: s2?.['oxfordGrade'] ?? null,
-        perfect_power: s2?.['perfect']?.power ?? null,
-        bristol_type: s1?.['bristol']?.selectedType ?? null,
-      },
+      form_data: formData,
+      calculated_scores: calculatedScores,
       treatments,
     };
 
@@ -216,7 +269,7 @@ export class EncounterComponent implements OnInit {
       next: () => {
         const enc = this.encountersService.activeEncounter();
         const sessionLabel = enc?.enc_number ? `Sesión #${enc.enc_number}` : 'Consulta';
-        this.stickyBar()?.setSavedStatus(`${sessionLabel} guardada`);
+        this.stickyBar()?.setSavedStatus(isCompleted ? 'Consulta firmada' : `${sessionLabel} guardada`);
         this.toast.success(
           isCompleted
             ? `¡${sessionLabel} finalizada y firmada con éxito!`
@@ -233,5 +286,24 @@ export class EncounterComponent implements OnInit {
         this.toast.error(msg);
       },
     });
+  }
+
+  signConsultation(): void {
+    const activeEnc = this.encountersService.activeEncounter();
+    if (!activeEnc?.enc_uuid) {
+      this.toast.warning('Primero debés guardar la consulta antes de poder firmarla.');
+      return;
+    }
+    if (activeEnc.enc_status === 'SIGNED_LOCKED') {
+      this.toast.info('La consulta ya se encuentra firmada.');
+      return;
+    }
+
+    const confirmed = window.confirm(
+      '¿Confirmás la firma y cierre definitivo de esta consulta médica? Una vez firmada, no se podrán realizar más modificaciones.'
+    );
+    if (!confirmed) return;
+
+    this.saveConsultation(true);
   }
 }
