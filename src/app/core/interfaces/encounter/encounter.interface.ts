@@ -25,6 +25,8 @@ export interface EncounterTreatmentInterface {
   enctr_updatedat?: Date | string;
 }
 
+export type EncounterStatus = 'IN_PROGRESS' | 'SIGNED_LOCKED' | 'VOID';
+
 export interface EncounterInterface {
   cmp_uuid: string;
   enc_uuid: string;
@@ -36,7 +38,7 @@ export interface EncounterInterface {
   enc_number: number;
   enc_type: 'FIRST_TIME' | 'FOLLOW_UP' | 'DISCHARGE' | string;
   enc_date: Date | string;
-  enc_status: 'IN_PROGRESS' | 'SIGNED_LOCKED' | 'VOID' | string;
+  enc_status: EncounterStatus | string;
   enc_reason?: string | null;
   enc_maindiagnosiscode?: string | null;
   enc_signedat?: Date | string | null;
@@ -67,6 +69,28 @@ export interface CreateEncounterPayload {
   enc_reason?: string | null;
   enc_maindiagnosiscode?: string | null;
 
+  form_data?: Record<string, any>;
+  calculated_scores?: Record<string, any>;
+  treatments?: Array<{
+    enctr_kind?: string;
+    enctr_code?: string | null;
+    enctr_name: string;
+    enctr_category?: string | null;
+    enctr_targetzone?: string | null;
+    enctr_dosageparameters: string;
+    enctr_frequency?: string | null;
+    enctr_homeprescription?: string | null;
+    enctr_isactive?: boolean;
+  }>;
+}
+
+export interface UpdateEncounterPayload {
+  enc_type?: 'FIRST_TIME' | 'FOLLOW_UP' | 'DISCHARGE' | string;
+  enc_status?: EncounterStatus | string;
+  enc_reason?: string | null;
+  enc_maindiagnosiscode?: string | null;
+  enc_signedat?: Date | string | null;
+  enc_signedby?: string | null;
   form_data?: Record<string, any>;
   calculated_scores?: Record<string, any>;
   treatments?: Array<{
