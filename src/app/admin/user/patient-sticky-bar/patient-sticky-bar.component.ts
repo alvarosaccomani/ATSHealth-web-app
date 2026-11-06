@@ -1,4 +1,4 @@
-import { Component, HostListener, effect, inject, output, signal } from '@angular/core';
+import { Component, HostListener, computed, effect, inject, output, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { ToastService } from '@services/toast.service';
 import { PatientsService } from '@services/patients.service';
@@ -23,8 +23,13 @@ export class PatientStickyBarComponent {
   readonly sex = signal<BiologicalSex>('femenino');
   readonly sexChange = output<BiologicalSex>();
   readonly sessionSelect = output<EncounterInterface | null>();
+  readonly onSave = output<void>();
+  readonly onSign = output<void>();
+  readonly onPrint = output<void>();
 
   readonly isSessionDropdownOpen = signal<boolean>(false);
+  readonly isLocked = computed(() => this.encountersService.activeEncounter()?.enc_status === 'SIGNED_LOCKED');
+  readonly hasActiveSession = computed(() => !!this.encountersService.activeEncounter()?.enc_uuid);
 
   readonly patientName = signal<string>('');
   readonly age = signal<number | null>(null);
@@ -41,9 +46,6 @@ export class PatientStickyBarComponent {
   readonly isCompact = signal<boolean>(false);
   readonly isManuallyExpanded = signal<boolean>(false);
   readonly autosaveStatus = signal<string>('Autoguardado activo');
-
-  readonly onSave = output<void>();
-  readonly onPrint = output<void>();
 
   constructor() {
     effect(() => {
@@ -184,6 +186,10 @@ export class PatientStickyBarComponent {
   saveRecord(): void {
     this.autosaveStatus.set('Guardando...');
     this.onSave.emit();
+  }
+
+  signRecord(): void {
+    this.onSign.emit();
   }
 
   setSavedStatus(status: string): void {

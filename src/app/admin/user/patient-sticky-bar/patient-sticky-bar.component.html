@@ -100,7 +100,7 @@
           <div class="flex items-center gap-2">
             <!-- Autoguardado -->
             <div class="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-50 dark:bg-darkBg-750 text-slate-500 dark:text-slate-400 border border-slate-200/80 dark:border-darkBg-700">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span class="w-1.5 h-1.5 rounded-full" [class.bg-emerald-500]="!isLocked()" [class.bg-slate-400]="isLocked()" [class.animate-pulse]="!isLocked()"></span>
               <span>{{ autosaveStatus() }}</span>
             </div>
 
@@ -113,14 +113,34 @@
               <i class="fa-solid fa-print text-xs"></i>
             </button>
 
-            <!-- Guardar Consulta -->
-            <button 
-              type="button" 
-              (click)="saveRecord()" 
-              class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-brand-600 to-teal-600 hover:from-brand-700 hover:to-teal-700 shadow-xs shadow-brand-500/20 transition-all cursor-pointer">
-              <i class="fa-solid fa-cloud-arrow-up text-[11px]"></i>
-              <span class="hidden sm:inline">Guardar Consulta</span>
-            </button>
+            @if (isLocked()) {
+              <!-- Badge Consulta Bloqueada / Firmada -->
+              <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 shadow-2xs">
+                <i class="fa-solid fa-lock text-[11px]"></i>
+                <span class="hidden sm:inline">Firmada y Cerrada</span>
+              </div>
+            } @else {
+              <!-- Guardar / Actualizar Consulta -->
+              <button 
+                type="button" 
+                (click)="saveRecord()" 
+                class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-brand-600 to-teal-600 hover:from-brand-700 hover:to-teal-700 shadow-xs shadow-brand-500/20 transition-all cursor-pointer">
+                <i class="fa-solid fa-cloud-arrow-up text-[11px]"></i>
+                <span class="hidden sm:inline">{{ hasActiveSession() ? 'Actualizar Consulta' : 'Guardar Consulta' }}</span>
+              </button>
+
+              @if (hasActiveSession()) {
+                <!-- Botón Firmar -->
+                <button
+                  type="button"
+                  (click)="signRecord()"
+                  title="Firmar y bloquear consulta definitivamente"
+                  class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/80 border border-emerald-200 dark:border-emerald-800 transition-all cursor-pointer shadow-2xs">
+                  <i class="fa-solid fa-signature text-[11px]"></i>
+                  <span class="hidden sm:inline">Firmar</span>
+                </button>
+              }
+            }
 
             <!-- Botón Expandir / Editar -->
             <button 
@@ -263,13 +283,31 @@
                   <i class="fa-solid fa-print text-xs"></i>
                 </button>
 
-                <button 
-                  type="button" 
-                  (click)="saveRecord()" 
-                  class="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-brand-600 to-teal-600 hover:from-brand-700 hover:to-teal-700 shadow-xs shadow-brand-500/20 transition-all cursor-pointer">
-                  <i class="fa-solid fa-cloud-arrow-up text-xs"></i>
-                  <span>Guardar Consulta</span>
-                </button>
+                @if (isLocked()) {
+                  <div class="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 shadow-2xs">
+                    <i class="fa-solid fa-lock text-xs"></i>
+                    <span>Firmada y Cerrada</span>
+                  </div>
+                } @else {
+                  <button 
+                    type="button" 
+                    (click)="saveRecord()" 
+                    class="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-brand-600 to-teal-600 hover:from-brand-700 hover:to-teal-700 shadow-xs shadow-brand-500/20 transition-all cursor-pointer">
+                    <i class="fa-solid fa-cloud-arrow-up text-xs"></i>
+                    <span>{{ hasActiveSession() ? 'Actualizar Consulta' : 'Guardar Consulta' }}</span>
+                  </button>
+
+                  @if (hasActiveSession()) {
+                    <button
+                      type="button"
+                      (click)="signRecord()"
+                      title="Firmar y bloquear consulta definitivamente"
+                      class="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/80 border border-emerald-200 dark:border-emerald-800 shadow-2xs transition-all cursor-pointer">
+                      <i class="fa-solid fa-signature text-xs"></i>
+                      <span>Firmar y Cerrar</span>
+                    </button>
+                  }
+                }
               </div>
             </div>
 
