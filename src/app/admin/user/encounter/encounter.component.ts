@@ -10,6 +10,7 @@ import { PatientsService } from '@services/patients.service';
 import { CompanyContextService } from '@services/company-context.service';
 import { AuthService } from '@services/auth.service';
 import { EncountersService } from '@services/encounters.service';
+import { TemplatesService } from '@services/templates.service';
 import { ToastService } from '@services/toast.service';
 import {
   CreateEncounterPayload,
@@ -38,6 +39,7 @@ export class EncounterComponent implements OnInit {
   readonly companyContext = inject(CompanyContextService);
   private readonly authService = inject(AuthService);
   readonly encountersService = inject(EncountersService);
+  readonly templatesService = inject(TemplatesService);
   private readonly toast = inject(ToastService);
 
   readonly stickyBar = viewChild<PatientStickyBarComponent>('stickyBar');
@@ -58,6 +60,16 @@ export class EncounterComponent implements OnInit {
       if (patient) {
         const bioSex = (patient.pat_biologicalsex?.toLowerCase() as BiologicalSex) || 'femenino';
         this.activeSex.set(bioSex);
+      }
+    });
+
+    // Carga las plantillas clínicas operativas de la compañía seleccionada
+    effect(() => {
+      const activeCmp = this.companyContext.activeCompany();
+      if (activeCmp?.cmp_uuid) {
+        this.templatesService.getTemplates(activeCmp.cmp_uuid).subscribe({
+          error: () => {},
+        });
       }
     });
   }
@@ -166,6 +178,13 @@ export class EncounterComponent implements OnInit {
       this.stage3()?.hydrateData({}, encounter.treatments);
     }
 
+    if (encounter.tpl_uuid) {
+      const match = this.templatesService.templates().find((t) => t.tpl_uuid === encounter.tpl_uuid);
+      if (match) {
+        this.templatesService.selectTemplate(match);
+      }
+    }
+
     this.toast.info(`Cargada Sesión #${encounter.enc_number || 1}`);
   }
 
@@ -256,6 +275,7 @@ export class EncounterComponent implements OnInit {
       cmp_uuid: activeCmp.cmp_uuid,
       pat_uuid: activePat.pat_uuid,
       usr_uuid_practitioner: currentUser?.usr_uuid,
+      tpl_uuid: this.templatesService.activeTemplate()?.tpl_uuid || null,
       enc_type: 'CONSULTATION',
       enc_status: isCompleted ? 'SIGNED_LOCKED' : 'IN_PROGRESS',
       enc_date: sticky?.['consultDate'] || new Date().toISOString(),
