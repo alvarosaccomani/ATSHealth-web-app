@@ -1,7 +1,7 @@
 export type StorageBucketType = 'public' | 'private';
 
 export interface PresignedUploadRequest {
-  usr_uuid: string;
+  usr_uuid?: string;
   filename: string;
   contentType: string;
   bucketType?: StorageBucketType;
@@ -31,6 +31,16 @@ export interface PresignedDownloadResponse {
     downloadUrl: string;
     expiresIn: number;
   };
+}
+
+export interface StorageDeleteRequest {
+  key: string;
+  bucketType?: StorageBucketType;
+}
+
+export interface StorageDeleteResponse {
+  success: boolean;
+  message: string;
 }
 
 export interface UploadProgress {
