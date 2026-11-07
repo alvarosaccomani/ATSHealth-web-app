@@ -1,8 +1,6 @@
-version: '3.8'
-
 services:
-  ATSHealth-web-app:
-    container_name: ATSHealth-web-app
+  atshealth-web-app:
+    container_name: atshealth-web-app
     build:
       context: .
       dockerfile: Dockerfile
