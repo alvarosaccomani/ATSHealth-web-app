@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  ATSHealth-web-app:
+    container_name: ATSHealth-web-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    expose:
+      - "80"
+    restart: unless-stopped
+    networks:
+      - dokploy-network
+
+networks:
+  dokploy-network:
+    external: true
