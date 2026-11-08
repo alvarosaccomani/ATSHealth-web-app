@@ -249,15 +249,57 @@ export class Clinical3dViewerComponent
         this.cdr.markForCheck();
       },
       undefined,
-      (error) => {
-        this.isLoading = false;
-        this.loadError =
-          error instanceof Error
-            ? error.message
-            : 'Error al cargar el modelo 3D.';
-        this.cdr.markForCheck();
+      () => {
+        // Fallback to stylized anatomical placeholder so the component remains fully interactive
+        this.loadFallbackProceduralScene();
       },
     );
+  }
+
+  private loadFallbackProceduralScene(): void {
+    const group = new THREE.Group();
+    const count = Math.max(this.config.structures.length, 1);
+    const radius = 1.2;
+
+    this.config.structures.forEach((structure, index) => {
+      const angle = (index / count) * Math.PI * 2;
+      const x = Math.cos(angle) * radius;
+      const z = Math.sin(angle) * (radius * 0.7);
+      const y =
+        structure.layer === 'deep'
+          ? -0.2
+          : structure.layer === 'intermediate'
+            ? 0
+            : 0.2;
+
+      const geometry = new THREE.TorusGeometry(0.35, 0.12, 16, 32);
+      const baseColor =
+        structure.layer === 'deep'
+          ? 0xef4444
+          : structure.layer === 'intermediate'
+            ? 0xf59e0b
+            : 0x3b82f6;
+
+      const material = new THREE.MeshStandardMaterial({
+        color: baseColor,
+        roughness: 0.35,
+        metalness: 0.1,
+      });
+
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.name = structure.meshId;
+      mesh.position.set(x, y, z);
+      mesh.rotation.x = Math.PI / 2;
+
+      this.meshMap.set(structure.meshId, mesh);
+      this.originalColors.set(structure.meshId, baseColor);
+      group.add(mesh);
+    });
+
+    this.scene.add(group);
+    this.applyHighlights();
+    this.isLoading = false;
+    this.cdr.markForCheck();
   }
 
   private applyHighlights(): void {
