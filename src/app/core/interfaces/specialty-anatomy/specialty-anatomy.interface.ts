@@ -15,15 +15,26 @@ export interface SpecialtyStructure {
   label: string;
   layerId: string;
   evalType?: 'OXFORD' | 'EVA' | 'PERFECT' | 'RANGE_OF_MOTION';
+  defaultColor?: string; // Override cromático específico de esta estructura
 }
 
 /**
- * @description Definición de capa anatómica para filtrado por planos/sistemas.
+ * @description Definición de capa anatómica para filtrado y coloreado por planos/sistemas.
  */
 export interface SpecialtyLayer {
   id: string;
   label: string;
   defaultVisible: boolean;
+  baseColor?: string; // Color base heredado por todas las estructuras de este plano
+}
+
+/**
+ * @description Paleta clínica opcional por tipos anatómicos mayores.
+ */
+export interface SpecialtyPaletteConfig {
+  bone?: string;
+  muscle?: string;
+  ligament?: string;
 }
 
 /**
@@ -36,6 +47,7 @@ export interface SpecialtyAnatomyConfig {
   visibleMeshTokens: string[];
   structures: SpecialtyStructure[];
   layers?: SpecialtyLayer[];
+  palette?: SpecialtyPaletteConfig;
 }
 
 /**
