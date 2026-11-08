@@ -1,4 +1,5 @@
 export type {
+  SelectedStructureEvent,
   SpecialtyAnatomyConfig,
   SpecialtyCameraConfig,
   SpecialtyLayer,
