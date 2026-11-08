@@ -1,4 +1,9 @@
 import { Component, output, signal } from '@angular/core';
+import { Clinical3dViewerComponent } from '@components/clinical-3d-viewer/clinical-3d-viewer.component';
+import {
+  AnatomyConfig,
+  SelectedStructureEvent,
+} from '@interfaces/clinical-model';
 
 export interface OxfordItem {
   grade: number;
@@ -8,13 +13,78 @@ export interface OxfordItem {
 
 @Component({
   selector: 'app-stage-2-physical-exam',
-  imports: [],
+  imports: [Clinical3dViewerComponent],
   templateUrl: './stage-2-physical-exam.component.html',
   styleUrl: './stage-2-physical-exam.component.scss',
 })
 export class Stage2PhysicalExamComponent {
   readonly prevStage = output<number>();
   readonly nextStage = output<number>();
+
+  // Configuración de visor 3D para Suelo Pélvico
+  readonly pelvic3dConfig: AnatomyConfig = {
+    specialtyCode: 'pelvic_floor',
+    modelUrl: '/assets/models/pelvic_floor_female.glb',
+    cameraPosition: { x: 0, y: 1.5, z: 3.5 },
+    structures: [
+      {
+        meshId: 'puborectalis',
+        label: 'M. Puborrectal',
+        layer: 'deep',
+        evalType: 'oxford',
+      },
+      {
+        meshId: 'pubococcygeus',
+        label: 'M. Pubococcígeo',
+        layer: 'deep',
+        evalType: 'oxford',
+      },
+      {
+        meshId: 'iliococcygeus',
+        label: 'M. Iliococcígeo',
+        layer: 'deep',
+        evalType: 'oxford',
+      },
+      {
+        meshId: 'obturator_internus_l',
+        label: 'M. Obturador Interno Izq.',
+        layer: 'intermediate',
+        evalType: 'eva',
+      },
+      {
+        meshId: 'obturator_internus_r',
+        label: 'M. Obturador Interno Der.',
+        layer: 'intermediate',
+        evalType: 'eva',
+      },
+      {
+        meshId: 'bulbospongiosus',
+        label: 'M. Bulboesponjoso',
+        layer: 'superficial',
+      },
+      {
+        meshId: 'ischiocavernosus',
+        label: 'M. Isquiocavernoso',
+        layer: 'superficial',
+      },
+    ],
+    layers: [
+      { id: 'superficial', label: 'Plano Superficial', visible: true },
+      { id: 'intermediate', label: 'Plano Medio', visible: true },
+      { id: 'deep', label: 'Plano Profundo (Elevador)', visible: true },
+    ],
+  };
+
+  readonly active3dHighlights = signal<Record<string, string>>({
+    puborectalis: '#ef4444',
+    obturator_internus_l: '#f97316',
+  });
+
+  readonly selectedStructure = signal<SelectedStructureEvent | null>(null);
+
+  onStructureClick(event: SelectedStructureEvent): void {
+    this.selectedStructure.set(event);
+  }
 
   // Escala Oxford
   readonly oxfordGrade = signal<number>(2);
