@@ -1,9 +1,9 @@
 import { Component, output, signal } from '@angular/core';
 import { Clinical3dViewerComponent } from '@components/clinical-3d-viewer/clinical-3d-viewer.component';
 import {
-  AnatomyConfig,
   SelectedStructureEvent,
-} from '@interfaces/clinical-model';
+  SpecialtyAnatomyConfig,
+} from '@interfaces/specialty-anatomy';
 
 export interface OxfordItem {
   grade: number;
@@ -21,63 +21,89 @@ export class Stage2PhysicalExamComponent {
   readonly prevStage = output<number>();
   readonly nextStage = output<number>();
 
-  // Configuración de visor 3D para Suelo Pélvico
-  readonly pelvic3dConfig: AnatomyConfig = {
-    specialtyCode: 'pelvic_floor',
-    modelUrl: '/assets/models/pelvic_floor_female.glb',
-    cameraPosition: { x: 0, y: 1.5, z: 3.5 },
+  // Configuración de visor 3D para Suelo Pélvico con Universal Model y Mesh Whitelisting
+  readonly pelvic3dConfig: SpecialtyAnatomyConfig = {
+    specialtyCode: 'PELVIC_FLOOR',
+    modelUrl: '/assets/models/body_human.glb',
+    camera: {
+      position: { x: 0, y: 0.3, z: 2.2 },
+      target: { x: 0, y: 0, z: 0 },
+      fov: 45,
+    },
+    visibleMeshTokens: [
+      'pubococcygeus',
+      'iliococcygeus',
+      'levator ani',
+      'coccygeus',
+      'obturator internus',
+      'piriformis',
+      'hip bone',
+      'sacrum',
+      'pelvic',
+      'ilium',
+      'pubis',
+      'ischium',
+    ],
     structures: [
       {
-        meshId: 'puborectalis',
-        label: 'M. Puborrectal',
-        layer: 'deep',
-        evalType: 'oxford',
+        meshId: 'Pubococcygeus muscle.l',
+        label: 'M. Pubococcígeo Izq.',
+        layerId: 'deep',
+        evalType: 'OXFORD',
       },
       {
-        meshId: 'pubococcygeus',
-        label: 'M. Pubococcígeo',
-        layer: 'deep',
-        evalType: 'oxford',
+        meshId: 'Pubococcygeus muscle.r',
+        label: 'M. Pubococcígeo Der.',
+        layerId: 'deep',
+        evalType: 'OXFORD',
       },
       {
-        meshId: 'iliococcygeus',
-        label: 'M. Iliococcígeo',
-        layer: 'deep',
-        evalType: 'oxford',
+        meshId: 'Iliococcygeus muscle.l',
+        label: 'M. Iliococcígeo Izq.',
+        layerId: 'deep',
+        evalType: 'OXFORD',
       },
       {
-        meshId: 'obturator_internus_l',
+        meshId: 'Iliococcygeus muscle.r',
+        label: 'M. Iliococcígeo Der.',
+        layerId: 'deep',
+        evalType: 'OXFORD',
+      },
+      {
+        meshId: 'Obturator internus.l',
         label: 'M. Obturador Interno Izq.',
-        layer: 'intermediate',
-        evalType: 'eva',
+        layerId: 'intermediate',
+        evalType: 'EVA',
       },
       {
-        meshId: 'obturator_internus_r',
+        meshId: 'Obturator internus.r',
         label: 'M. Obturador Interno Der.',
-        layer: 'intermediate',
-        evalType: 'eva',
+        layerId: 'intermediate',
+        evalType: 'EVA',
       },
       {
-        meshId: 'bulbospongiosus',
-        label: 'M. Bulboesponjoso',
-        layer: 'superficial',
+        meshId: 'Coccygeus muscle.l',
+        label: 'M. Coccígeo Izq.',
+        layerId: 'deep',
+        evalType: 'OXFORD',
       },
       {
-        meshId: 'ischiocavernosus',
-        label: 'M. Isquiocavernoso',
-        layer: 'superficial',
+        meshId: 'Coccygeus muscle.r',
+        label: 'M. Coccígeo Der.',
+        layerId: 'deep',
+        evalType: 'OXFORD',
       },
     ],
     layers: [
-      { id: 'superficial', label: 'Plano Superficial', visible: true },
-      { id: 'intermediate', label: 'Plano Medio', visible: true },
-      { id: 'deep', label: 'Plano Profundo (Elevador)', visible: true },
+      { id: 'bone', label: 'Plano Óseo (Pelvis)', defaultVisible: true },
+      { id: 'intermediate', label: 'Plano Medio', defaultVisible: true },
+      { id: 'deep', label: 'Plano Profundo (Elevador)', defaultVisible: true },
     ],
   };
 
   readonly active3dHighlights = signal<Record<string, string>>({
-    puborectalis: '#ef4444',
-    obturator_internus_l: '#f97316',
+    'Pubococcygeus muscle.l': '#ef4444',
+    'Obturator internus.l': '#f97316',
   });
 
   readonly selectedStructure = signal<SelectedStructureEvent | null>(null);
