@@ -37,3 +37,14 @@ export interface SpecialtyAnatomyConfig {
   structures: SpecialtyStructure[];
   layers?: SpecialtyLayer[];
 }
+
+/**
+ * @description Evento emitido al seleccionar una estructura anatómica en el visor 3D.
+ */
+export interface SelectedStructureEvent {
+  meshId: string;
+  label: string;
+  originalColor: number;
+  evalType?: 'OXFORD' | 'EVA' | 'PERFECT' | 'RANGE_OF_MOTION';
+  layerId?: string;
+}
