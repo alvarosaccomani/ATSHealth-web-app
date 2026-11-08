@@ -3,6 +3,7 @@ export type {
   SpecialtyAnatomyConfig,
   SpecialtyCameraConfig,
   SpecialtyLayer,
+  SpecialtyPaletteConfig,
   SpecialtyStructure,
 } from './specialty-anatomy.interface';
 export type { SpecialtyAnatomyResults } from './specialty-anatomy-results.interface';
