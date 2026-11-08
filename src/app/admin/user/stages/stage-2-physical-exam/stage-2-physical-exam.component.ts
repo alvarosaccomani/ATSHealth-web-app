@@ -95,10 +95,30 @@ export class Stage2PhysicalExamComponent {
       },
     ],
     layers: [
-      { id: 'bone', label: 'Plano Óseo (Pelvis)', defaultVisible: true },
-      { id: 'intermediate', label: 'Plano Medio', defaultVisible: true },
-      { id: 'deep', label: 'Plano Profundo (Elevador)', defaultVisible: true },
+      {
+        id: 'bone',
+        label: 'Plano Óseo (Pelvis)',
+        defaultVisible: true,
+        baseColor: '#e2dac7',
+      },
+      {
+        id: 'intermediate',
+        label: 'Plano Medio',
+        defaultVisible: true,
+        baseColor: '#d97706',
+      },
+      {
+        id: 'deep',
+        label: 'Plano Profundo (Elevador)',
+        defaultVisible: true,
+        baseColor: '#b85050',
+      },
     ],
+    palette: {
+      bone: '#e2dac7',
+      muscle: '#b85050',
+      ligament: '#94a3b8',
+    },
   };
 
   readonly active3dHighlights = signal<Record<string, string>>({
