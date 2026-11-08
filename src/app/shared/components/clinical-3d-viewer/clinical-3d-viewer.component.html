@@ -4,7 +4,7 @@
     <button
       type="button"
       class="toolbar-btn"
-      title="Restablecer posición de cámara"
+      title="Restablecer posición de cámara y encuadre"
       (click)="resetCamera()"
     >
       <svg
@@ -30,7 +30,7 @@
           <button
             type="button"
             class="layer-pill"
-            [class.active]="layer.visible"
+            [class.active]="layer.defaultVisible"
             (click)="toggleLayer(layer)"
           >
             {{ layer.label }}
@@ -47,10 +47,10 @@
       [style.left.px]="tooltipPos.x"
       [style.top.px]="tooltipPos.y"
     >
-      <span class="tooltip-badge">{{ hoveredStructure.layer }}</span>
+      <span class="tooltip-badge">{{ hoveredStructure.layerId }}</span>
       <h4 class="tooltip-title">{{ hoveredStructure.label }}</h4>
       @if (hoveredStructure.evalType) {
-        <span class="tooltip-meta">{{ hoveredStructure.evalType }}</span>
+        <span class="tooltip-meta">Evaluación: {{ hoveredStructure.evalType }}</span>
       }
     </div>
   }

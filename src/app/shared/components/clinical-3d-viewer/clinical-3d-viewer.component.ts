@@ -17,11 +17,12 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import {
-  AnatomyConfig,
-  AnatomyLayer,
-  AnatomyStructure,
   SelectedStructureEvent,
-} from '@interfaces/clinical-model';
+  SpecialtyAnatomyConfig,
+  SpecialtyLayer,
+  SpecialtyStructure,
+} from '@interfaces/specialty-anatomy';
+import { Clinical3dFilterService } from '@services/clinical-3d-filter.service';
 
 @Component({
   selector: 'app-clinical-3d-viewer',
@@ -36,7 +37,7 @@ export class Clinical3dViewerComponent
   @ViewChild('canvasContainer', { static: true })
   private readonly containerRef!: ElementRef<HTMLDivElement>;
 
-  @Input({ required: true }) config!: AnatomyConfig;
+  @Input({ required: true }) config!: SpecialtyAnatomyConfig;
   @Input() highlightedMeshIds: Record<string, string> = {};
 
   @Output() structureClicked = new EventEmitter<SelectedStructureEvent>();
@@ -44,9 +45,9 @@ export class Clinical3dViewerComponent
   // UI state
   protected isLoading = true;
   protected loadError: string | null = null;
-  protected hoveredStructure: AnatomyStructure | null = null;
+  protected hoveredStructure: SpecialtyStructure | null = null;
   protected tooltipPos = { x: 0, y: 0 };
-  protected activeLayers: AnatomyLayer[] = [];
+  protected activeLayers: SpecialtyLayer[] = [];
 
   // Three.js core members
   private scene!: THREE.Scene;
@@ -55,19 +56,21 @@ export class Clinical3dViewerComponent
   private controls!: OrbitControls;
   private animationFrameId: number | null = null;
   private resizeObserver: ResizeObserver | null = null;
+  private currentBoundingBox: THREE.Box3 | null = null;
 
   // Interaction members
   private readonly raycaster = new THREE.Raycaster();
   private readonly pointer = new THREE.Vector2();
   private readonly meshMap = new Map<string, THREE.Mesh>();
   private readonly originalColors = new Map<string, number>();
-  private readonly structureByMeshId = new Map<string, AnatomyStructure>();
+  private readonly structureByMeshId = new Map<string, SpecialtyStructure>();
   private isPointerDown = false;
   private pointerDownPos = { x: 0, y: 0 };
 
   constructor(
     private readonly ngZone: NgZone,
     private readonly cdr: ChangeDetectorRef,
+    private readonly filterService: Clinical3dFilterService,
   ) {}
 
   public ngAfterViewInit(): void {
@@ -83,7 +86,10 @@ export class Clinical3dViewerComponent
       this.loadModel();
     }
 
-    if (changes['highlightedMeshIds'] && !changes['highlightedMeshIds'].firstChange) {
+    if (
+      changes['highlightedMeshIds'] &&
+      !changes['highlightedMeshIds'].firstChange
+    ) {
       this.applyHighlights();
     }
   }
@@ -93,34 +99,36 @@ export class Clinical3dViewerComponent
   }
 
   /**
-   * @description Reset camera to initial position defined by configuration.
+   * @description Restablece la cámara y encuadre dinámico de la especialidad.
    */
   public resetCamera(): void {
     if (!this.camera || !this.controls) {
       return;
     }
 
-    const pos = this.config.cameraPosition ?? { x: 0, y: 1.5, z: 3.5 };
-    this.camera.position.set(pos.x, pos.y, pos.z);
-    this.camera.lookAt(0, 0, 0);
-    this.controls.target.set(0, 0, 0);
-    this.controls.update();
+    if (this.currentBoundingBox) {
+      this.applyDynamicFraming(this.currentBoundingBox);
+    } else {
+      const pos = this.config.camera?.position ?? { x: 0, y: 1.5, z: 3.5 };
+      const target = this.config.camera?.target ?? { x: 0, y: 0, z: 0 };
+      this.camera.position.set(pos.x, pos.y, pos.z);
+      this.controls.target.set(target.x, target.y, target.z);
+      this.controls.update();
+    }
   }
 
   /**
-   * @description Toggle visibility for an anatomical layer.
+   * @description Alterna la visibilidad de una capa anatómica específica.
    */
-  public toggleLayer(layer: AnatomyLayer): void {
-    layer.visible = !layer.visible;
+  public toggleLayer(layer: SpecialtyLayer): void {
+    layer.defaultVisible = !layer.defaultVisible;
 
-    for (const structure of this.config.structures) {
-      if (structure.layer === layer.id) {
-        const mesh = this.meshMap.get(structure.meshId);
-        if (mesh) {
-          mesh.visible = layer.visible;
-        }
-      }
-    }
+    this.filterService.setLayerVisibility(
+      layer.id,
+      layer.defaultVisible,
+      this.config.structures,
+      this.meshMap,
+    );
   }
 
   private initThree(): void {
@@ -132,11 +140,13 @@ export class Clinical3dViewerComponent
     this.scene = new THREE.Scene();
 
     // Camera
-    this.camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
-    const pos = this.config.cameraPosition ?? { x: 0, y: 1.5, z: 3.5 };
+    const fov = this.config.camera?.fov ?? 45;
+    this.camera = new THREE.PerspectiveCamera(fov, width / height, 0.05, 500);
+
+    const pos = this.config.camera?.position ?? { x: 0, y: 1.5, z: 3.5 };
     this.camera.position.set(pos.x, pos.y, pos.z);
 
-    // Renderer
+    // WebGL Renderer optimizado
     this.renderer = new THREE.WebGLRenderer({
       antialias: true,
       alpha: true,
@@ -144,8 +154,9 @@ export class Clinical3dViewerComponent
     });
     this.renderer.setSize(width, height);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer.setClearColor(0x0f172a, 1);
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.1;
+    this.renderer.toneMappingExposure = 1.0;
 
     container.appendChild(this.renderer.domElement);
 
@@ -153,31 +164,33 @@ export class Clinical3dViewerComponent
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.05;
-    this.controls.maxDistance = 15;
-    this.controls.minDistance = 0.5;
-    this.controls.target.set(0, 0, 0);
+    this.controls.maxDistance = 25;
+    this.controls.minDistance = 0.1;
+
+    const target = this.config.camera?.target ?? { x: 0, y: 0, z: 0 };
+    this.controls.target.set(target.x, target.y, target.z);
     this.controls.update();
 
-    // Illumination
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
+    // Luces clínicas para inspección anatómica
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
     this.scene.add(ambientLight);
 
-    const directionalLight1 = new THREE.DirectionalLight(0xffffff, 1.4);
-    directionalLight1.position.set(5, 10, 7.5);
-    this.scene.add(directionalLight1);
+    const keyLight = new THREE.DirectionalLight(0xffffff, 1.2);
+    keyLight.position.set(5, 8, 7.5);
+    this.scene.add(keyLight);
 
-    const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.6);
-    directionalLight2.position.set(-5, -5, -5);
-    this.scene.add(directionalLight2);
+    const fillLight = new THREE.DirectionalLight(0x94a3b8, 0.7);
+    fillLight.position.set(-5, -4, -5);
+    this.scene.add(fillLight);
 
-    // Event listeners
+    // Listeners de interacción
     const canvas = this.renderer.domElement;
     canvas.addEventListener('pointerdown', this.onPointerDown);
     canvas.addEventListener('pointermove', this.onPointerMove);
     canvas.addEventListener('pointerup', this.onPointerUp);
     canvas.addEventListener('pointerleave', this.onPointerLeave);
 
-    // Start 60fps render loop outside Angular zone
+    // Render loop fuera de Angular zone (60 FPS estables)
     this.ngZone.runOutsideAngular(() => {
       this.animate();
     });
@@ -204,8 +217,12 @@ export class Clinical3dViewerComponent
     this.originalColors.clear();
     this.structureByMeshId.clear();
 
-    for (const structure of this.config.structures) {
-      this.structureByMeshId.set(structure.meshId, structure);
+    if (this.config.structures) {
+      for (const structure of this.config.structures) {
+        this.structureByMeshId.set(structure.meshId, structure);
+        const sanitizedKey = structure.meshId.replace(/[\s\.]/g, '_');
+        this.structureByMeshId.set(sanitizedKey, structure);
+      }
     }
 
     const loader = new GLTFLoader();
@@ -214,69 +231,133 @@ export class Clinical3dViewerComponent
       (gltf) => {
         const root = gltf.scene;
 
-        // Center and normalize model
-        const box = new THREE.Box3().setFromObject(root);
-        const center = box.getCenter(new THREE.Vector3());
+        // 1. Filtrado selectivo por especialidad (Mesh Whitelisting)
+        const filterResult = this.filterService.filterModelBySpecialty(
+          root,
+          this.config,
+        );
+
+        // 2. Centrado automático basado estrictamente en el bounding box de las mallas visibles
+        const center = new THREE.Vector3();
+        filterResult.boundingBox.getCenter(center);
         root.position.sub(center);
 
-        // Catalog meshes and cache baseline materials
-        root.traverse((node) => {
-          if (node instanceof THREE.Mesh) {
-            const mesh = node;
-            const meshName = mesh.name;
+        this.scene.add(root);
+        root.visible = true;
+        this.scene.updateMatrixWorld(true);
 
-            // Clone material to allow independent structure coloring
-            if (mesh.material) {
-              if (Array.isArray(mesh.material)) {
-                mesh.material = mesh.material.map((m) => m.clone());
-              } else {
-                mesh.material = mesh.material.clone();
-                const mat = mesh.material as THREE.MeshStandardMaterial;
-                if (mat.color) {
-                  this.originalColors.set(meshName, mat.color.getHex());
-                }
+        // 3. Re-cálculo de bounding box tras el centrado en la escena
+        const centeredBox = new THREE.Box3();
+        for (const mesh of filterResult.whitelistedMeshes.values()) {
+          centeredBox.expandByObject(mesh);
+        }
+        this.currentBoundingBox = centeredBox;
+
+        // 4. Registrar mallas y asignar sombreado anatómico base con DoubleSide
+        for (const [
+          meshName,
+          mesh,
+        ] of filterResult.whitelistedMeshes.entries()) {
+          const lowerName = meshName.toLowerCase();
+          const isMuscle =
+            /muscle|pubococc|iliococc|levator|obturator|coccyg|piriformis/i.test(
+              lowerName,
+            );
+          const isBone = /bone|ilium|pubis|ischium|sacrum/i.test(lowerName);
+          const isLigament = /fascia|ligament|arch|tendin/i.test(lowerName);
+
+          if (mesh.material) {
+            const mat = (
+              Array.isArray(mesh.material) ? mesh.material[0] : mesh.material
+            ) as THREE.MeshStandardMaterial;
+
+            mat.side = THREE.DoubleSide;
+
+            // Asignar color base anatómico si viene sin textura o monocromático en el archivo
+            const currentColor = mat.color ? mat.color.getHex() : 0xffffff;
+            if (currentColor === 0xffffff || currentColor === 0x000000) {
+              if (isMuscle) {
+                mat.color.setHex(0xb85050); // Músculo clínico
+                mat.roughness = 0.45;
+              } else if (isBone) {
+                mat.color.setHex(0xe3dccb); // Hueso marfil clínico
+                mat.roughness = 0.55;
+              } else if (isLigament) {
+                mat.color.setHex(0xa0aec0); // Fascia / ligamento
+                mat.roughness = 0.35;
               }
             }
 
-            this.meshMap.set(meshName, mesh);
+            if (mat.color) {
+              this.originalColors.set(meshName, mat.color.getHex());
+            }
           }
-        });
+          this.meshMap.set(meshName, mesh);
+        }
 
-        this.scene.add(root);
+        // 5. Aplicar Framing Dinámico para centrar la cámara sobre la región de interés
+        this.applyDynamicFraming(centeredBox);
         this.applyHighlights();
+
+        console.info(
+          `[Clinical3D] Modelo cargado con éxito. Mallas visibles: ${filterResult.whitelistedMeshes.size}. Centroide:`,
+          centeredBox.getCenter(new THREE.Vector3()),
+        );
 
         this.isLoading = false;
         this.cdr.markForCheck();
       },
       undefined,
-      () => {
-        // Fallback to stylized anatomical placeholder so the component remains fully interactive
+      (error) => {
+        console.warn(
+          '[Clinical3dViewer] Error al cargar modelo GLTF, activando fallback procedimental:',
+          error,
+        );
         this.loadFallbackProceduralScene();
       },
     );
   }
 
+  private applyDynamicFraming(box: THREE.Box3): void {
+    const framing = this.filterService.calculateDynamicFraming(
+      box,
+      this.camera,
+      this.config.camera?.target,
+      this.config.camera?.position,
+    );
+
+    this.camera.position.copy(framing.cameraPosition);
+    this.controls.target.copy(framing.target);
+
+    if (this.config.camera?.fov) {
+      this.camera.fov = this.config.camera.fov;
+      this.camera.updateProjectionMatrix();
+    }
+
+    this.controls.update();
+  }
+
   private loadFallbackProceduralScene(): void {
     const group = new THREE.Group();
-    const count = Math.max(this.config.structures.length, 1);
+    const count = Math.max(this.config.structures?.length || 0, 1);
     const radius = 1.2;
 
-    this.config.structures.forEach((structure, index) => {
+    (this.config.structures || []).forEach((structure, index) => {
       const angle = (index / count) * Math.PI * 2;
       const x = Math.cos(angle) * radius;
       const z = Math.sin(angle) * (radius * 0.7);
       const y =
-        structure.layer === 'deep'
+        structure.layerId === 'deep'
           ? -0.2
-          : structure.layer === 'intermediate'
+          : structure.layerId === 'intermediate'
             ? 0
             : 0.2;
 
       const geometry = new THREE.TorusGeometry(0.35, 0.12, 16, 32);
       const baseColor =
-        structure.layer === 'deep'
+        structure.layerId === 'deep'
           ? 0xef4444
-          : structure.layer === 'intermediate'
+          : structure.layerId === 'intermediate'
             ? 0xf59e0b
             : 0x3b82f6;
 
@@ -296,6 +377,10 @@ export class Clinical3dViewerComponent
       group.add(mesh);
     });
 
+    const box = new THREE.Box3().setFromObject(group);
+    this.currentBoundingBox = box;
+    this.applyDynamicFraming(box);
+
     this.scene.add(group);
     this.applyHighlights();
     this.isLoading = false;
@@ -303,24 +388,44 @@ export class Clinical3dViewerComponent
   }
 
   private applyHighlights(): void {
+    const normalizedHighlights = new Map<string, string>();
+    for (const [key, color] of Object.entries(this.highlightedMeshIds || {})) {
+      normalizedHighlights.set(key.toLowerCase(), color);
+      normalizedHighlights.set(
+        key.toLowerCase().replace(/[\s\.]/g, '_'),
+        color,
+      );
+      normalizedHighlights.set(key.toLowerCase().replace(/_/g, ' '), color);
+    }
+
     for (const [meshId, mesh] of this.meshMap.entries()) {
       const material = mesh.material;
-      if (!material || Array.isArray(material)) {
+      if (!material) {
         continue;
       }
 
-      const standardMat = material as THREE.MeshStandardMaterial;
-      if (!standardMat.color) {
+      const mat = (
+        Array.isArray(material) ? material[0] : material
+      ) as THREE.MeshStandardMaterial;
+      if (!mat.color) {
         continue;
       }
 
-      const highlightHex = this.highlightedMeshIds[meshId];
+      const rawId = meshId.toLowerCase();
+      const normId = rawId.replace(/[\s\.]/g, '_');
+      const spaceId = rawId.replace(/_/g, ' ');
+
+      const highlightHex =
+        normalizedHighlights.get(rawId) ||
+        normalizedHighlights.get(normId) ||
+        normalizedHighlights.get(spaceId);
+
       if (highlightHex) {
-        standardMat.color.set(highlightHex);
+        mat.color.set(highlightHex);
       } else {
         const original = this.originalColors.get(meshId);
         if (original !== undefined) {
-          standardMat.color.setHex(original);
+          mat.color.setHex(original);
         }
       }
     }
@@ -337,6 +442,7 @@ export class Clinical3dViewerComponent
     this.pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
     this.raycaster.setFromCamera(this.pointer, this.camera);
+    // Raycasting optimizado: colisiones estrictamente sobre mallas visibles filtradas
     const meshes = Array.from(this.meshMap.values()).filter((m) => m.visible);
     const intersects = this.raycaster.intersectObjects(meshes, false);
 
@@ -369,7 +475,7 @@ export class Clinical3dViewerComponent
     }
     this.isPointerDown = false;
 
-    // Avoid triggering click during camera rotation / drag
+    // Evitar disparo de click durante giros o paneos de cámara
     const deltaX = Math.abs(event.clientX - this.pointerDownPos.x);
     const deltaY = Math.abs(event.clientY - this.pointerDownPos.y);
     if (deltaX > 4 || deltaY > 4) {
@@ -397,6 +503,8 @@ export class Clinical3dViewerComponent
             meshId: structure.meshId,
             label: structure.label,
             originalColor,
+            evalType: structure.evalType,
+            layerId: structure.layerId,
           });
         });
       }
@@ -452,7 +560,6 @@ export class Clinical3dViewerComponent
       this.controls.dispose();
     }
 
-    // Traverse and dispose all scene geometries and materials
     if (this.scene) {
       this.scene.traverse((object) => {
         if (object instanceof THREE.Mesh) {
@@ -477,5 +584,6 @@ export class Clinical3dViewerComponent
     this.meshMap.clear();
     this.originalColors.clear();
     this.structureByMeshId.clear();
+    this.currentBoundingBox = null;
   }
 }
