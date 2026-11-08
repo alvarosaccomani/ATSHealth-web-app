@@ -253,12 +253,25 @@ export class Clinical3dViewerComponent
         }
         this.currentBoundingBox = centeredBox;
 
-        // 4. Registrar mallas y asignar sombreado anatómico base con DoubleSide
+        // 4. Registrar mallas y resolver Cascada de Estilos Anatómica (Capa -> Estructura -> Paleta)
+        const layerColorMap = new Map<string, string>();
+        for (const layer of this.config.layers || []) {
+          if (layer.baseColor) {
+            layerColorMap.set(layer.id, layer.baseColor);
+          }
+        }
+
+        const defaultBoneColor = this.config.palette?.bone || '#e3dccb';
+        const defaultMuscleColor = this.config.palette?.muscle || '#b85050';
+        const defaultLigamentColor = this.config.palette?.ligament || '#a0aec0';
+
         for (const [
           meshName,
           mesh,
         ] of filterResult.whitelistedMeshes.entries()) {
           const lowerName = meshName.toLowerCase();
+          const structure = this.structureByMeshId.get(meshName);
+
           const isMuscle =
             /muscle|pubococc|iliococc|levator|obturator|coccyg|piriformis/i.test(
               lowerName,
@@ -273,19 +286,25 @@ export class Clinical3dViewerComponent
 
             mat.side = THREE.DoubleSide;
 
-            // Asignar color base anatómico si viene sin textura o monocromático en el archivo
-            const currentColor = mat.color ? mat.color.getHex() : 0xffffff;
-            if (currentColor === 0xffffff || currentColor === 0x000000) {
-              if (isMuscle) {
-                mat.color.setHex(0xb85050); // Músculo clínico
-                mat.roughness = 0.45;
-              } else if (isBone) {
-                mat.color.setHex(0xe3dccb); // Hueso marfil clínico
-                mat.roughness = 0.55;
-              } else if (isLigament) {
-                mat.color.setHex(0xa0aec0); // Fascia / ligamento
-                mat.roughness = 0.35;
-              }
+            // Resolución de cascada: Override Estructura > Color de Capa > Paleta de Tipo > Color original
+            let resolvedColor: string | null = null;
+            if (structure?.defaultColor) {
+              resolvedColor = structure.defaultColor;
+            } else if (structure?.layerId && layerColorMap.has(structure.layerId)) {
+              resolvedColor = layerColorMap.get(structure.layerId)!;
+            } else if (isMuscle) {
+              resolvedColor = defaultMuscleColor;
+              mat.roughness = 0.45;
+            } else if (isBone) {
+              resolvedColor = defaultBoneColor;
+              mat.roughness = 0.55;
+            } else if (isLigament) {
+              resolvedColor = defaultLigamentColor;
+              mat.roughness = 0.35;
+            }
+
+            if (resolvedColor) {
+              mat.color.set(resolvedColor);
             }
 
             if (mat.color) {
