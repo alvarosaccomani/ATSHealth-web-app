@@ -12,6 +12,10 @@ export type DynamicFieldType =
   | 'date'
   | 'score_calculator'
   | 'custom_widget'
+  | 'bristol_scale'
+  | 'pelvis_3d_viewer'
+  | 'consent_box'
+  | 'radar_chart'
   | string;
 
 export interface DynamicFieldOption {
@@ -34,7 +38,12 @@ export interface DynamicFieldValidation {
 export interface DynamicFieldDependency {
   fieldId: string;
   equals?: any;
+  notEquals?: any;
+  greaterThan?: number;
+  lessThan?: number;
   in?: any[];
+  operator?: 'equals' | 'notEquals' | 'greaterThan' | 'lessThan' | 'in';
+  value?: any;
 }
 
 export interface DynamicFieldSchema {
@@ -57,8 +66,12 @@ export interface DynamicSectionSchema {
   title: string;
   description?: string;
   icon?: string;
+  type?: string;
   columns?: number;
-  fields: DynamicFieldSchema[];
+  fields?: DynamicFieldSchema[];
+  tableColumns?: Array<{ id: string; label: string; type?: string; options?: any[] }>;
+  defaultRows?: any[];
+  extraConfig?: Record<string, any>;
 }
 
 export interface DynamicStageSchema {
