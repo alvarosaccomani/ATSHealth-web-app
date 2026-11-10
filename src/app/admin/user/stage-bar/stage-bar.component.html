@@ -1,6 +1,6 @@
 <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 w-full">
   <nav aria-label="Etapas de Historia Clínica" class="grid grid-cols-2 md:grid-cols-4 gap-2.5 bg-white dark:bg-darkBg-800 p-2 rounded-2xl border border-slate-200 dark:border-darkBg-700 shadow-xs transition-colors">
-    @for (stage of stages; track stage.id) {
+    @for (stage of stages(); track stage.id) {
       <button 
         type="button" 
         (click)="selectStage(stage.id)"
