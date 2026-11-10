@@ -134,9 +134,6 @@ export class PatientStickyBarComponent {
   }
 
   printRecord(): void {
-    if (typeof window !== 'undefined') {
-      window.print();
-    }
     this.onPrint.emit();
   }
 
