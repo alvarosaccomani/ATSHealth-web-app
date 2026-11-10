@@ -98,10 +98,27 @@
             <!-- Plantilla Clínica en Vista Compacta -->
             <div class="hidden lg:block">
               <p class="text-xs text-slate-400 dark:text-slate-400 font-medium leading-none mb-1">Plantilla</p>
-              <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-semibold bg-slate-100 text-slate-700 dark:bg-darkBg-700 dark:text-slate-300 border border-slate-200 dark:border-darkBg-600" [title]="activeTemplateName()">
-                <i class="fa-solid fa-file-waveform text-brand-600 dark:text-brand-400 text-[11px]"></i>
-                <span class="max-w-[130px] truncate">{{ activeTemplateName() }}</span>
-              </span>
+              @if (hasActiveSession()) {
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-semibold bg-slate-100 text-slate-700 dark:bg-darkBg-700 dark:text-slate-300 border border-slate-200 dark:border-darkBg-600" [title]="'Plantilla inmutable fijada: ' + activeTemplateName()">
+                  <i class="fa-solid fa-lock text-amber-500 text-[10px]"></i>
+                  <span class="max-w-[130px] truncate">{{ activeTemplateName() }}</span>
+                  <span class="text-[10px] font-mono text-slate-400">v{{ activeTemplateVersion() }}</span>
+                </span>
+              } @else {
+                <div class="relative inline-flex items-center">
+                  <select
+                    [value]="templatesService.activeTemplate()?.tpl_uuid || ''"
+                    (change)="onTemplateSelect($any($event.target).value)"
+                    class="text-xs font-semibold px-2 py-0.5 pr-5 rounded-md bg-brand-50 dark:bg-brand-950/70 text-brand-800 dark:text-brand-300 border border-brand-200 dark:border-brand-800 focus:outline-none focus:ring-1 focus:ring-brand-500 cursor-pointer appearance-none max-w-[150px] truncate">
+                    @for (tpl of templatesService.templates(); track tpl.tpl_uuid) {
+                      <option [value]="tpl.tpl_uuid">
+                        {{ tpl.tpl_name }} (v{{ tpl.tpl_version || '1.0' }})
+                      </option>
+                    }
+                  </select>
+                  <i class="fa-solid fa-chevron-down text-[8px] text-brand-600 dark:text-brand-400 absolute right-1.5 pointer-events-none"></i>
+                </div>
+              }
             </div>
           </div>
 
@@ -184,11 +201,28 @@
                   }
                   <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-medium">HC: {{ historyNumber() }}</span>
 
-                  <!-- Badge Plantilla Clínica en Vista Expandida -->
-                  <span class="inline-flex items-center gap-1.5 text-xs px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-darkBg-700 text-slate-700 dark:text-slate-300 font-medium border border-slate-200 dark:border-darkBg-600" [title]="activeTemplateName()">
-                    <i class="fa-solid fa-file-waveform text-brand-600 dark:text-brand-400 text-[10px]"></i>
-                    <span>{{ activeTemplateName() }}</span>
-                  </span>
+                  <!-- Badge / Selector de Plantilla Clínica en Vista Expandida -->
+                  @if (hasActiveSession()) {
+                    <span class="inline-flex items-center gap-1.5 text-xs px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-darkBg-700 text-slate-700 dark:text-slate-300 font-medium border border-slate-200 dark:border-darkBg-600" [title]="'Plantilla inmutable fijada: ' + activeTemplateName()">
+                      <i class="fa-solid fa-lock text-amber-500 text-[10px]"></i>
+                      <span>{{ activeTemplateName() }}</span>
+                      <span class="text-[10px] font-mono text-slate-400">v{{ activeTemplateVersion() }}</span>
+                    </span>
+                  } @else {
+                    <div class="relative inline-flex items-center">
+                      <select
+                        [value]="templatesService.activeTemplate()?.tpl_uuid || ''"
+                        (change)="onTemplateSelect($any($event.target).value)"
+                        class="text-xs font-semibold px-3 py-0.5 pr-6 rounded-full bg-brand-50 hover:bg-brand-100 dark:bg-brand-950/70 text-brand-800 dark:text-brand-300 border border-brand-200 dark:border-brand-800 focus:outline-none focus:ring-1 focus:ring-brand-500 cursor-pointer appearance-none">
+                        @for (tpl of templatesService.templates(); track tpl.tpl_uuid) {
+                          <option [value]="tpl.tpl_uuid">
+                            {{ tpl.tpl_name }} (v{{ tpl.tpl_version || '1.0' }})
+                          </option>
+                        }
+                      </select>
+                      <i class="fa-solid fa-chevron-down text-[9px] text-brand-600 dark:text-brand-400 absolute right-2 pointer-events-none"></i>
+                    </div>
+                  }
 
                   <!-- Selector de Sesión en Vista Expandida -->
                   <div class="relative inline-block">

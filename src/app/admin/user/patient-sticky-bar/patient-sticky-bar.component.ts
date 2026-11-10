@@ -33,6 +33,8 @@ export class PatientStickyBarComponent {
   readonly isLocked = computed(() => this.encountersService.activeEncounter()?.enc_status === 'SIGNED_LOCKED');
   readonly hasActiveSession = computed(() => !!this.encountersService.activeEncounter()?.enc_uuid);
   readonly activeTemplateName = computed(() => this.templatesService.activeTemplate()?.tpl_name || 'Evaluación Piso Pélvico');
+  readonly activeTemplateVersion = computed(() => this.templatesService.activeTemplate()?.tpl_version || '1.0.0');
+  readonly activeTemplateCode = computed(() => this.templatesService.activeTemplate()?.tpl_code || 'PELVI_EVAL');
 
   readonly patientName = signal<string>('');
   readonly age = signal<number | null>(null);
@@ -146,6 +148,18 @@ export class PatientStickyBarComponent {
   selectSession(enc: EncounterInterface | null): void {
     this.isSessionDropdownOpen.set(false);
     this.sessionSelect.emit(enc);
+  }
+
+  onTemplateSelect(tplUuid: string): void {
+    if (this.hasActiveSession()) {
+      this.toast.warning('No es posible cambiar la plantilla de una consulta ya iniciada.');
+      return;
+    }
+    const match = this.templatesService.templates().find((t) => t.tpl_uuid === tplUuid);
+    if (match) {
+      this.templatesService.selectTemplate(match);
+      this.toast.info(`Plantilla clínica seleccionada: ${match.tpl_name}`);
+    }
   }
 
   hydrateEncounter(encounter: EncounterInterface | null): void {
