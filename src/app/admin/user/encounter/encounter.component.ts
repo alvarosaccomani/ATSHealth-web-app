@@ -289,6 +289,15 @@ export class EncounterComponent implements OnInit {
     }
 
     // CREACIÓN de nueva sesión en blanco
+    const existingOpenSession = this.encountersService.openSession();
+    if (existingOpenSession && existingOpenSession.enc_uuid !== activeEnc?.enc_uuid) {
+      this.toast.warning(
+        `El paciente ya tiene la Sesión #${existingOpenSession.enc_number} en curso. No se pueden abrir múltiples sesiones simultáneas; se cargó la sesión abierta.`
+      );
+      this.loadEncounter(existingOpenSession);
+      return;
+    }
+
     const initialFormData = {
       ...formData,
       _meta: templateMeta,
