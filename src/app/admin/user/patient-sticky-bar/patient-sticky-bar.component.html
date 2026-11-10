@@ -81,12 +81,15 @@
                           </p>
                         </div>
                         <span 
-                          class="shrink-0 text-[9px] font-bold px-1.5 py-0.5 rounded"
+                          class="shrink-0 text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1"
                           [class.bg-emerald-100]="enc.enc_status === 'SIGNED_LOCKED'"
                           [class.text-emerald-700]="enc.enc_status === 'SIGNED_LOCKED'"
                           [class.bg-amber-100]="enc.enc_status !== 'SIGNED_LOCKED'"
-                          [class.text-amber-700]="enc.enc_status !== 'SIGNED_LOCKED'">
-                          {{ enc.enc_status === 'SIGNED_LOCKED' ? 'Firmada' : 'Borrador' }}
+                          [class.text-amber-800]="enc.enc_status !== 'SIGNED_LOCKED'">
+                          @if (enc.enc_status === 'IN_PROGRESS') {
+                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                          }
+                          {{ enc.enc_status === 'SIGNED_LOCKED' ? 'Firmada' : 'En Curso' }}
                         </span>
                       </button>
                     }
@@ -270,12 +273,15 @@
                                 </p>
                               </div>
                               <span 
-                                class="shrink-0 text-[9px] font-bold px-1.5 py-0.5 rounded"
+                                class="shrink-0 text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1"
                                 [class.bg-emerald-100]="enc.enc_status === 'SIGNED_LOCKED'"
                                 [class.text-emerald-700]="enc.enc_status === 'SIGNED_LOCKED'"
                                 [class.bg-amber-100]="enc.enc_status !== 'SIGNED_LOCKED'"
-                                [class.text-amber-700]="enc.enc_status !== 'SIGNED_LOCKED'">
-                                {{ enc.enc_status === 'SIGNED_LOCKED' ? 'Firmada' : 'Borrador' }}
+                                [class.text-amber-800]="enc.enc_status !== 'SIGNED_LOCKED'">
+                                @if (enc.enc_status === 'IN_PROGRESS') {
+                                  <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                }
+                                {{ enc.enc_status === 'SIGNED_LOCKED' ? 'Firmada' : 'En Curso' }}
                               </span>
                             </button>
                           }

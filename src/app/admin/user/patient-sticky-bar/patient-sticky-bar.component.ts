@@ -147,6 +147,19 @@ export class PatientStickyBarComponent {
 
   selectSession(enc: EncounterInterface | null): void {
     this.isSessionDropdownOpen.set(false);
+
+    // Guardia de Sesión Única: si se solicita iniciar nueva sesión (null) pero ya hay una IN_PROGRESS
+    if (enc === null) {
+      const openSession = this.encountersService.openSession();
+      if (openSession) {
+        this.toast.warning(
+          `El paciente ya cuenta con la Sesión #${openSession.enc_number} en curso sin firmar. Se cargó dicha sesión para que puedas completarla o cerrarla.`
+        );
+        this.sessionSelect.emit(openSession);
+        return;
+      }
+    }
+
     this.sessionSelect.emit(enc);
   }
 
