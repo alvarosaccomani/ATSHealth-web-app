@@ -1,4 +1,4 @@
-import { Component, input, output, signal, computed } from '@angular/core';
+import { Component, input, output, signal, computed, effect } from '@angular/core';
 import { BiologicalSex } from '../../patient-sticky-bar/patient-sticky-bar.component';
 import { ConsentModalComponent } from '@components/consent-modal/consent-modal.component';
 
@@ -21,6 +21,23 @@ export interface DiaryEntry {
   activity: string;
 }
 
+export type PerinealTraumaType =
+  | 'episiotomia'
+  | 'desgarro_1'
+  | 'desgarro_2'
+  | 'oasir'
+  | 'integro'
+  | 'no_aplica';
+
+export interface ObstetricHistoryState {
+  gestas: number;
+  partos: number;
+  cesareas: number;
+  abortos: number;
+  pesoFetalMax: number | null;
+  traumaPerineal: PerinealTraumaType;
+}
+
 @Component({
   selector: 'app-stage-1-anamnesis',
   imports: [ConsentModalComponent],
@@ -38,6 +55,80 @@ export class Stage1AnamnesisComponent {
 
   // Fase Gineco-Obstétrica
   readonly obstetricPhase = signal<'postparto' | 'preparto' | 'no_aplica'>('postparto');
+
+  // Antecedentes Gineco-Obstétricos Reactivos
+  readonly gestas = signal<number>(2);
+  readonly partos = signal<number>(1);
+  readonly cesareas = signal<number>(0);
+  readonly abortos = signal<number>(1);
+  readonly pesoFetalMax = signal<number | null>(3750);
+  readonly traumaPerineal = signal<PerinealTraumaType>('episiotomia');
+
+  // Reglas Clínicas Reactivas (Computeds)
+  readonly isFemale = computed(() => this.sex() === 'femenino');
+
+  // Si gestas == 0 o no es mujer, no pueden existir datos de partos/cesáreas/abortos ni peso fetal
+  readonly canHavePregnancyData = computed(() => this.isFemale() && this.gestas() > 0);
+
+  // El trauma perineal solo aplica si hubo al menos un parto vaginal
+  readonly canHavePerinealTrauma = computed(() => this.canHavePregnancyData() && this.partos() > 0);
+
+  constructor() {
+    // Si el sexo cambia a masculino, se sanitizan los campos obstétricos
+    effect(() => {
+      if (!this.isFemale()) {
+        this.gestas.set(0);
+        this.partos.set(0);
+        this.cesareas.set(0);
+        this.abortos.set(0);
+        this.pesoFetalMax.set(null);
+        this.traumaPerineal.set('no_aplica');
+      }
+    });
+  }
+
+  setGestas(val: number | string): void {
+    const cleanVal = Math.max(0, Number(val) || 0);
+    this.gestas.set(cleanVal);
+    if (cleanVal === 0) {
+      this.partos.set(0);
+      this.cesareas.set(0);
+      this.abortos.set(0);
+      this.pesoFetalMax.set(null);
+      this.traumaPerineal.set('no_aplica');
+    }
+  }
+
+  setPartos(val: number | string): void {
+    const cleanVal = Math.max(0, Number(val) || 0);
+    this.partos.set(cleanVal);
+    if (cleanVal === 0) {
+      this.traumaPerineal.set('no_aplica');
+    } else if (this.traumaPerineal() === 'no_aplica') {
+      this.traumaPerineal.set('integro');
+    }
+  }
+
+  setCesareas(val: number | string): void {
+    this.cesareas.set(Math.max(0, Number(val) || 0));
+  }
+
+  setAbortos(val: number | string): void {
+    this.abortos.set(Math.max(0, Number(val) || 0));
+  }
+
+  setPesoFetalMax(val: number | string | null): void {
+    if (val === '' || val === null || val === undefined) {
+      this.pesoFetalMax.set(null);
+    } else {
+      const num = Number(val);
+      this.pesoFetalMax.set(!isNaN(num) ? num : null);
+    }
+  }
+
+  setTraumaPerineal(val: PerinealTraumaType): void {
+    this.traumaPerineal.set(val);
+  }
 
   // Cuestionario ICIQ-UI SF
   readonly iciqFreq = signal<number>(2);
@@ -236,6 +327,16 @@ export class Stage1AnamnesisComponent {
     return {
       consentStatus: this.consentStatus(),
       obstetricPhase: this.obstetricPhase(),
+      obstetricHistory: this.isFemale()
+        ? {
+            gestas: this.gestas(),
+            partos: this.canHavePregnancyData() ? this.partos() : 0,
+            cesareas: this.canHavePregnancyData() ? this.cesareas() : 0,
+            abortos: this.canHavePregnancyData() ? this.abortos() : 0,
+            pesoFetalMax: this.canHavePregnancyData() ? this.pesoFetalMax() : null,
+            traumaPerineal: this.canHavePerinealTrauma() ? this.traumaPerineal() : 'no_aplica',
+          }
+        : null,
       iciq: {
         freq: this.iciqFreq(),
         vol: this.iciqVol(),
@@ -257,6 +358,15 @@ export class Stage1AnamnesisComponent {
     if (!data) return;
     if (data['consentStatus']) this.consentStatus.set(data['consentStatus']);
     if (data['obstetricPhase']) this.obstetricPhase.set(data['obstetricPhase']);
+    if (data['obstetricHistory']) {
+      const obs = data['obstetricHistory'];
+      if (typeof obs.gestas === 'number') this.gestas.set(obs.gestas);
+      if (typeof obs.partos === 'number') this.partos.set(obs.partos);
+      if (typeof obs.cesareas === 'number') this.cesareas.set(obs.cesareas);
+      if (typeof obs.abortos === 'number') this.abortos.set(obs.abortos);
+      if (obs.pesoFetalMax !== undefined) this.pesoFetalMax.set(obs.pesoFetalMax);
+      if (obs.traumaPerineal) this.traumaPerineal.set(obs.traumaPerineal);
+    }
     if (data['iciq']) {
       if (typeof data['iciq'].freq === 'number') this.iciqFreq.set(data['iciq'].freq);
       if (typeof data['iciq'].vol === 'number') this.iciqVol.set(data['iciq'].vol);
