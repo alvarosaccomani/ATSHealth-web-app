@@ -52,11 +52,10 @@ export class SidebarComponent {
       disabled: true,
     },
     {
-      label: 'Protocolos Clínicos',
-      icon: 'fa-file-medical',
-      route: '/admin/application/protocols',
-      badge: 'Pronto',
-      disabled: true,
+      label: 'Plantillas & Studio',
+      icon: 'fa-file-waveform',
+      route: '/admin/application/templates',
+      adminOnly: true,
     },
     {
       label: 'Estadísticas & Reportes',
