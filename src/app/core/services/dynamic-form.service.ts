@@ -120,16 +120,77 @@ export class DynamicFormService {
    * @param field Campo a evaluar.
    * @param contextData Objeto de datos del contexto actual (sección o formulario global).
    */
+  /**
+   * @description Resuelve el valor de un campo desde el objeto de datos, soportando estructuras planas o anidadas.
+   */
+  resolveContextValue(fieldId: string, contextData: Record<string, any>): any {
+    if (!contextData || typeof contextData !== 'object') {
+      return undefined;
+    }
+
+    if (contextData[fieldId] !== undefined) {
+      return contextData[fieldId];
+    }
+
+    for (const key of Object.keys(contextData)) {
+      const val = contextData[key];
+      if (val && typeof val === 'object' && !Array.isArray(val)) {
+        if (val[fieldId] !== undefined) {
+          return val[fieldId];
+        }
+        for (const subKey of Object.keys(val)) {
+          const subVal = val[subKey];
+          if (subVal && typeof subVal === 'object' && !Array.isArray(subVal) && subVal[fieldId] !== undefined) {
+            return subVal[fieldId];
+          }
+        }
+      }
+    }
+
+    return undefined;
+  }
+
+  /**
+   * @description Evalúa si un campo debe ser visible en base a su regla dependsOn y el estado actual de datos.
+   */
   evaluateVisibility(field: DynamicFieldSchema, contextData: Record<string, any>): boolean {
     if (!field.dependsOn) {
       return true;
     }
 
     const dep = field.dependsOn;
-    const currentValue = contextData?.[dep.fieldId];
+    const currentValue = this.resolveContextValue(dep.fieldId, contextData);
+
+    if (dep.operator) {
+      const targetVal = dep.value !== undefined ? dep.value : dep.equals;
+      switch (dep.operator) {
+        case 'equals':
+          return currentValue == targetVal;
+        case 'notEquals':
+          return currentValue != targetVal;
+        case 'greaterThan':
+          return Number(currentValue) > Number(targetVal);
+        case 'lessThan':
+          return Number(currentValue) < Number(targetVal);
+        case 'in':
+          return Array.isArray(targetVal) ? targetVal.includes(currentValue) : false;
+      }
+    }
 
     if (dep.equals !== undefined) {
-      return currentValue === dep.equals;
+      return currentValue == dep.equals;
+    }
+
+    if (dep.notEquals !== undefined) {
+      return currentValue != dep.notEquals;
+    }
+
+    if (dep.greaterThan !== undefined) {
+      return Number(currentValue) > Number(dep.greaterThan);
+    }
+
+    if (dep.lessThan !== undefined) {
+      return Number(currentValue) < Number(dep.lessThan);
     }
 
     if (dep.in && Array.isArray(dep.in)) {
@@ -137,6 +198,24 @@ export class DynamicFormService {
     }
 
     return true;
+  }
+
+  /**
+   * @description Calcula el Score del Cuestionario ICIQ-UI SF a partir del diccionario de datos.
+   */
+  calculateIciqScore(data: Record<string, any>): { score: number; severity: string } {
+    const freq = Number(this.resolveContextValue('iciq_freq', data) ?? this.resolveContextValue('iciq_frequency', data) ?? 0);
+    const vol = Number(this.resolveContextValue('iciq_vol', data) ?? this.resolveContextValue('iciq_amount', data) ?? 0);
+    const impact = Number(this.resolveContextValue('iciq_impact', data) ?? 0);
+
+    const score = freq + vol + impact;
+    let severity = 'Sin Incontinencia';
+    if (score > 0 && score <= 5) severity = 'Impacto Leve';
+    else if (score <= 12) severity = 'Impacto Moderado';
+    else if (score <= 18) severity = 'Impacto Severo';
+    else if (score > 18) severity = 'Impacto Muy Severo';
+
+    return { score, severity };
   }
 
   /**
