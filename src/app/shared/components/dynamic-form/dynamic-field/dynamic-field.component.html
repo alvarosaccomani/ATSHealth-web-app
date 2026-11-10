@@ -1,1 +1,184 @@
-<p>dynamic-field works!</p>
+@if (isVisible()) {
+  <div [class]="colSpanClass()" class="space-y-1.5 text-xs">
+    
+    <!-- MODO LECTURA / INFORME / REPORTE CLÍNICO -->
+    @if (mode() === 'readonly') {
+      <div class="p-2.5 rounded-xl bg-slate-50/70 dark:bg-darkBg-800 border border-slate-100 dark:border-darkBg-700">
+        <span class="block text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">
+          {{ field().label }}
+        </span>
+        <div class="mt-1 font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
+          @if (field().type === 'boolean' || field().type === 'toggle' || field().type === 'checkbox') {
+            <span
+              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold"
+              [class.bg-emerald-100]="value()"
+              [class.text-emerald-700]="value()"
+              [class.dark:bg-emerald-950]="value()"
+              [class.dark:text-emerald-300]="value()"
+              [class.bg-slate-100]="!value()"
+              [class.text-slate-600]="!value()">
+              <i class="fa-solid" [class.fa-check]="value()" [class.fa-xmark]="!value()"></i>
+              <span>{{ value() ? 'Sí' : 'No' }}</span>
+            </span>
+          } @else {
+            <span>{{ formattedValue() }}</span>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- MODO EDICIÓN INTERACTIVO -->
+    @else {
+      <div class="flex items-center justify-between">
+        <label [for]="field().id" class="block font-semibold text-slate-700 dark:text-slate-200">
+          {{ field().label }}
+          @if (field().validation?.required) {
+            <span class="text-rose-500 font-bold">*</span>
+          }
+        </label>
+        @if (field().unit) {
+          <span class="text-[10px] font-mono text-slate-400 dark:text-slate-400">
+            {{ field().unit }}
+          </span>
+        }
+      </div>
+
+      <!-- TEXTAREA -->
+      @if (field().type === 'textarea') {
+        <textarea
+          [id]="field().id"
+          [value]="value() || ''"
+          (input)="value.set($any($event.target).value)"
+          [placeholder]="field().placeholder || 'Escriba aquí...'"
+          rows="3"
+          class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-darkBg-700 bg-white dark:bg-darkBg-750 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-brand-500 focus:outline-none transition-all resize-y">
+        </textarea>
+      }
+
+      <!-- NUMBER -->
+      @else if (field().type === 'number') {
+        <div class="relative">
+          <input
+            type="number"
+            [id]="field().id"
+            [value]="value() ?? ''"
+            (input)="value.set($any($event.target).valueAsNumber)"
+            [min]="field().validation?.min ?? null"
+            [max]="field().validation?.max ?? null"
+            [step]="field().validation?.step ?? 1"
+            [placeholder]="field().placeholder || '0'"
+            class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-darkBg-700 bg-white dark:bg-darkBg-750 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-brand-500 focus:outline-none font-mono">
+          @if (field().unit) {
+            <span class="absolute right-3 top-2.5 text-[11px] font-mono text-slate-400 pointer-events-none">
+              {{ field().unit }}
+            </span>
+          }
+        </div>
+      }
+
+      <!-- RANGE / SLIDER -->
+      @else if (field().type === 'range') {
+        <div class="space-y-1.5 p-2 rounded-xl bg-slate-50 dark:bg-darkBg-800 border border-slate-100 dark:border-darkBg-700">
+          <div class="flex items-center justify-between text-xs font-mono">
+            <span class="text-slate-400">{{ field().validation?.min ?? 0 }}</span>
+            <span class="px-2 py-0.5 rounded-md bg-brand-50 dark:bg-brand-950 font-bold text-brand-700 dark:text-brand-300">
+              {{ value() ?? 0 }} {{ field().unit || '' }}
+            </span>
+            <span class="text-slate-400">{{ field().validation?.max ?? 10 }}</span>
+          </div>
+          <input
+            type="range"
+            [id]="field().id"
+            [value]="value() ?? (field().validation?.min ?? 0)"
+            (input)="value.set($any($event.target).valueAsNumber)"
+            [min]="field().validation?.min ?? 0"
+            [max]="field().validation?.max ?? 10"
+            [step]="field().validation?.step ?? 1"
+            class="w-full accent-brand-600 dark:accent-brand-400 cursor-pointer">
+        </div>
+      }
+
+      <!-- SELECT -->
+      @else if (field().type === 'select') {
+        <select
+          [id]="field().id"
+          [value]="value() || ''"
+          (change)="value.set($any($event.target).value)"
+          class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-darkBg-700 bg-white dark:bg-darkBg-750 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-brand-500 focus:outline-none font-medium cursor-pointer">
+          <option value="" disabled>Seleccione una opción...</option>
+          @for (opt of field().options; track opt.value) {
+            <option [value]="opt.value">
+              {{ opt.label }} {{ opt.score !== undefined ? '(Score: ' + opt.score + ')' : '' }}
+            </option>
+          }
+        </select>
+      }
+
+      <!-- RADIO / RADIO_GROUP (BOTONES TIPO PILL) -->
+      @else if (field().type === 'radio' || field().type === 'radio_group') {
+        <div class="flex flex-wrap gap-1.5">
+          @for (opt of field().options; track opt.value) {
+            <button
+              type="button"
+              (click)="onSelectOption(opt)"
+              [class.bg-brand-600]="value() === opt.value"
+              [class.text-white]="value() === opt.value"
+              [class.border-brand-600]="value() === opt.value"
+              [class.bg-white]="value() !== opt.value"
+              [class.text-slate-700]="value() !== opt.value"
+              [class.dark:bg-darkBg-750]="value() !== opt.value"
+              [class.dark:text-slate-300]="value() !== opt.value"
+              [class.border-slate-200]="value() !== opt.value"
+              [class.dark:border-darkBg-700]="value() !== opt.value"
+              class="px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all hover:border-brand-400 cursor-pointer flex items-center gap-1.5">
+              @if (opt.icon) {
+                <i [class]="'fa-solid ' + opt.icon + ' text-[11px]'"></i>
+              }
+              <span>{{ opt.label }}</span>
+              @if (opt.score !== undefined) {
+                <span class="text-[10px] px-1 rounded font-mono" [class.bg-white/20]="value() === opt.value" [class.bg-slate-100]="value() !== opt.value" [class.dark:bg-darkBg-700]="value() !== opt.value">
+                  {{ opt.score }}
+                </span>
+              }
+            </button>
+          }
+        </div>
+      }
+
+      <!-- TOGGLE / BOOLEAN / CHECKBOX -->
+      @else if (field().type === 'boolean' || field().type === 'toggle' || field().type === 'checkbox') {
+        <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-darkBg-800 border border-slate-100 dark:border-darkBg-700">
+          <span class="text-xs text-slate-600 dark:text-slate-300">
+            {{ value() ? 'Confirmado / Presente' : 'No reportado / Ausente' }}
+          </span>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              [id]="field().id"
+              [checked]="!!value()"
+              (change)="value.set($any($event.target).checked)"
+              class="sr-only peer">
+            <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-darkBg-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-600"></div>
+          </label>
+        </div>
+      }
+
+      <!-- DEFAULT: TEXT INPUT -->
+      @else {
+        <input
+          type="text"
+          [id]="field().id"
+          [value]="value() || ''"
+          (input)="value.set($any($event.target).value)"
+          [placeholder]="field().placeholder || 'Ingrese información...'"
+          class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-darkBg-700 bg-white dark:bg-darkBg-750 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-brand-500 focus:outline-none transition-all">
+      }
+
+      @if (field().helpText) {
+        <p class="text-[10px] text-slate-400 dark:text-slate-400 mt-1 italic">
+          {{ field().helpText }}
+        </p>
+      }
+    }
+  </div>
+}
