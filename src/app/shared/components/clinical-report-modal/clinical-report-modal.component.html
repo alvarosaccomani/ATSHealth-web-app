@@ -1,1 +1,326 @@
-<p>clinical-report-modal works!</p>
+@if (isOpen() && report()) {
+  <div class="report-modal-overlay fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 md:p-6 print:p-0 print:bg-white print:static print:block">
+    
+    <!-- Modal Window Container -->
+    <div class="report-modal-window relative w-full max-w-4xl bg-white dark:bg-darkBg-850 rounded-2xl shadow-2xl border border-slate-200 dark:border-darkBg-700 overflow-hidden flex flex-col max-h-[92vh] print:max-h-none print:border-none print:shadow-none print:rounded-none">
+      
+      <!-- Top Action Toolbar (Oculta al Imprimir) -->
+      <div class="report-toolbar px-6 py-3.5 bg-slate-900 text-white flex items-center justify-between shrink-0 print:hidden">
+        <div class="flex items-center gap-2.5">
+          <i class="fa-solid fa-file-invoice text-brand-400 text-sm"></i>
+          <div>
+            <h3 class="text-xs font-bold tracking-wide uppercase">
+              Informe Clínico & Epicrisis
+            </h3>
+            <p class="text-[10px] text-slate-400">
+              Sesión #{{ report()?.metadata?.sessionNumber }} • {{ report()?.patient?.fullName }}
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            (click)="print()"
+            class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-brand-600 hover:bg-brand-500 text-white shadow-xs transition-all cursor-pointer">
+            <i class="fa-solid fa-print text-xs"></i>
+            <span>Imprimir / Guardar PDF</span>
+          </button>
+
+          <button
+            type="button"
+            (click)="close()"
+            title="Cerrar (Esc)"
+            class="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer">
+            <i class="fa-solid fa-xmark text-sm"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Scrollable Printable Document Body -->
+      <div class="report-sheet-container flex-1 overflow-y-auto p-6 sm:p-8 md:p-10 space-y-6 bg-slate-50/50 dark:bg-darkBg-900 text-slate-800 dark:text-slate-200 print:bg-white print:text-black print:p-0 print:overflow-visible">
+        
+        <!-- Hoja de Impresión A4 -->
+        <div class="report-sheet max-w-3xl mx-auto bg-white dark:bg-darkBg-800 p-8 rounded-2xl border border-slate-200/80 dark:border-darkBg-700 shadow-xs space-y-6 print:border-none print:shadow-none print:p-0 print:max-w-none">
+          
+          <!-- 1. Encabezado Membretado Institucional -->
+          <div class="flex items-start justify-between border-b border-slate-200 dark:border-darkBg-700 pb-5">
+            <div>
+              <h1 class="text-xl font-black tracking-tight text-slate-900 dark:text-white print:text-black uppercase">
+                {{ report()?.header?.clinicName }}
+              </h1>
+              <p class="text-xs text-brand-600 dark:text-brand-400 print:text-slate-600 font-semibold mt-0.5">
+                Historia Clínica Digital & Rehabilitación Funcional
+              </p>
+              @if (report()?.header?.clinicAddress || report()?.header?.clinicPhone || report()?.header?.clinicEmail) {
+                <div class="text-[11px] text-slate-400 dark:text-slate-400 mt-1.5 space-x-2 print:text-slate-500">
+                  @if (report()?.header?.clinicAddress) {
+                    <span><i class="fa-solid fa-location-dot mr-1"></i>{{ report()?.header?.clinicAddress }}</span>
+                  }
+                  @if (report()?.header?.clinicPhone) {
+                    <span>• <i class="fa-solid fa-phone mr-1"></i>{{ report()?.header?.clinicPhone }}</span>
+                  }
+                  @if (report()?.header?.clinicEmail) {
+                    <span>• <i class="fa-solid fa-envelope mr-1"></i>{{ report()?.header?.clinicEmail }}</span>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Sello Legal de Estado -->
+            <div class="text-right">
+              @if (report()?.metadata?.status === 'SIGNED_LOCKED') {
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 print:border print:border-emerald-700 print:text-emerald-900">
+                  <i class="fa-solid fa-lock text-[10px]"></i>
+                  <span>FIRMADA & BLOQUEADA</span>
+                </span>
+                @if (report()?.metadata?.signedAt) {
+                  <p class="text-[10px] text-slate-400 dark:text-slate-400 mt-1">
+                    Firmada: {{ report()?.metadata?.signedAt | date:'dd/MM/yyyy HH:mm' }}
+                  </p>
+                }
+              } @else {
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
+                  <i class="fa-solid fa-clock text-[10px]"></i>
+                  <span>BORRADOR EN CURSO</span>
+                </span>
+                <p class="text-[10px] text-amber-600 dark:text-amber-400 mt-1 italic">
+                  Documento no sellado
+                </p>
+              }
+            </div>
+          </div>
+
+          <!-- 2. Ficha Filiatoria del Paciente -->
+          <div class="p-4 rounded-xl bg-slate-50 dark:bg-darkBg-750 border border-slate-100 dark:border-darkBg-700 print:bg-slate-50 print:border print:border-slate-200">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-200 dark:border-darkBg-700 gap-2">
+              <div>
+                <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Paciente</span>
+                <h2 class="text-base font-bold text-slate-900 dark:text-white print:text-black">
+                  {{ report()?.patient?.fullName }}
+                </h2>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 rounded-md text-xs font-mono font-semibold bg-white dark:bg-darkBg-850 border border-slate-200 dark:border-darkBg-600">
+                  DNI: {{ report()?.patient?.documentNumber }}
+                </span>
+                @if (report()?.patient?.age !== null) {
+                  <span class="px-2 py-0.5 rounded-md text-xs font-semibold bg-white dark:bg-darkBg-850 border border-slate-200 dark:border-darkBg-600">
+                    {{ report()?.patient?.age }} años
+                  </span>
+                }
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 text-xs">
+              <div>
+                <span class="text-[10px] text-slate-400 block font-medium">Sexo Biológico</span>
+                <span class="font-bold capitalize">{{ report()?.patient?.biologicalSex }}</span>
+              </div>
+              <div>
+                <span class="text-[10px] text-slate-400 block font-medium">Cobertura / Prepaga</span>
+                <span class="font-bold">{{ report()?.patient?.medicalCoverage }}</span>
+              </div>
+              <div>
+                <span class="text-[10px] text-slate-400 block font-medium">Nº Afiliado</span>
+                <span class="font-bold font-mono">{{ report()?.patient?.affiliateNumber || '-' }}</span>
+              </div>
+              <div>
+                <span class="text-[10px] text-slate-400 block font-medium">Ocupación</span>
+                <span class="font-bold">{{ report()?.patient?.occupation || '-' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Metadatos de la Atención & Plantilla Inmutable -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 rounded-xl border border-dashed border-slate-200 dark:border-darkBg-700 text-xs">
+            <div>
+              <span class="text-[10px] text-slate-400 uppercase font-bold block">Sesión</span>
+              <span class="font-bold text-brand-600 dark:text-brand-400 print:text-black">
+                Sesión #{{ report()?.metadata?.sessionNumber }}
+              </span>
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-400 uppercase font-bold block">Fecha Atención</span>
+              <span class="font-semibold">{{ report()?.metadata?.consultDate | date:'dd/MM/yyyy' }}</span>
+            </div>
+            <div class="sm:col-span-2">
+              <span class="text-[10px] text-slate-400 uppercase font-bold block">Plantilla Clínica Utilizada</span>
+              <span class="font-semibold text-slate-800 dark:text-slate-200 print:text-black">
+                {{ report()?.metadata?.templateName }}
+                <span class="font-mono text-[10px] text-slate-400 font-bold ml-1">
+                  ({{ report()?.metadata?.templateCode }} v{{ report()?.metadata?.templateVersion }})
+                </span>
+              </span>
+            </div>
+          </div>
+
+          <!-- Motivo & Expectativa -->
+          @if (report()?.metadata?.consultReason || report()?.metadata?.consultGoal) {
+            <div class="p-3.5 rounded-xl bg-slate-50/70 dark:bg-darkBg-750 border border-slate-100 dark:border-darkBg-700 text-xs space-y-1.5">
+              @if (report()?.metadata?.consultReason) {
+                <div>
+                  <span class="text-[10px] font-bold text-slate-400 uppercase">Motivo Principal:</span>
+                  <p class="font-medium text-slate-800 dark:text-slate-200 mt-0.5">
+                    {{ report()?.metadata?.consultReason }}
+                  </p>
+                </div>
+              }
+              @if (report()?.metadata?.consultGoal) {
+                <div>
+                  <span class="text-[10px] font-bold text-slate-400 uppercase">Objetivo Terapéutico:</span>
+                  <p class="font-medium text-slate-800 dark:text-slate-200 mt-0.5">
+                    {{ report()?.metadata?.consultGoal }}
+                  </p>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- 4. Scores Validados Destacados (Si Aplica) -->
+          @if (report()?.calculatedScores?.['iciq_score'] !== undefined || report()?.calculatedScores?.['oxford_grade'] !== undefined || report()?.calculatedScores?.['bristol_type'] !== undefined) {
+            <div class="space-y-2">
+              <h4 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider print:text-black flex items-center gap-1.5">
+                <i class="fa-solid fa-chart-simple text-brand-600 dark:text-brand-400 print:text-black text-xs"></i>
+                <span>Cuestionarios & Métricas Funcionales Validadas</span>
+              </h4>
+
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
+                @if (report()?.calculatedScores?.['iciq_score'] !== undefined && report()?.calculatedScores?.['iciq_score'] !== null) {
+                  <div class="p-2.5 rounded-xl bg-blue-50/60 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-900">
+                    <span class="text-[10px] font-bold text-blue-700 dark:text-blue-300 block">ICIQ-UI SF</span>
+                    <span class="text-base font-black text-blue-900 dark:text-blue-100">
+                      {{ report()?.calculatedScores?.['iciq_score'] }} / 21
+                    </span>
+                    <p class="text-[10px] text-blue-700 dark:text-blue-300 mt-0.5">
+                      {{ report()?.calculatedScores?.['iciq_severity']?.label || 'Score Total' }}
+                    </p>
+                  </div>
+                }
+
+                @if (report()?.calculatedScores?.['oxford_grade'] !== undefined && report()?.calculatedScores?.['oxford_grade'] !== null) {
+                  <div class="p-2.5 rounded-xl bg-purple-50/60 dark:bg-purple-950/40 border border-purple-200/80 dark:border-purple-900">
+                    <span class="text-[10px] font-bold text-purple-700 dark:text-purple-300 block">Escala Oxford</span>
+                    <span class="text-base font-black text-purple-900 dark:text-purple-100">
+                      Grado {{ report()?.calculatedScores?.['oxford_grade'] }} / 5
+                    </span>
+                    <p class="text-[10px] text-purple-700 dark:text-purple-300 mt-0.5">
+                      Fuerza Muscular Perineal
+                    </p>
+                  </div>
+                }
+
+                @if (report()?.calculatedScores?.['perfect_power'] !== undefined && report()?.calculatedScores?.['perfect_power'] !== null) {
+                  <div class="p-2.5 rounded-xl bg-teal-50/60 dark:bg-teal-950/40 border border-teal-200/80 dark:border-teal-900">
+                    <span class="text-[10px] font-bold text-teal-700 dark:text-teal-300 block">Esquema P.E.R.F.E.C.T</span>
+                    <span class="text-base font-black text-teal-900 dark:text-teal-100">
+                      P: {{ report()?.calculatedScores?.['perfect_power'] }}
+                    </span>
+                    <p class="text-[10px] text-teal-700 dark:text-teal-300 mt-0.5">
+                      Evaluación Funcional
+                    </p>
+                  </div>
+                }
+
+                @if (report()?.calculatedScores?.['bristol_type'] !== undefined && report()?.calculatedScores?.['bristol_type'] !== null) {
+                  <div class="p-2.5 rounded-xl bg-amber-50/60 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-900">
+                    <span class="text-[10px] font-bold text-amber-700 dark:text-amber-300 block">Escala Bristol</span>
+                    <span class="text-base font-black text-amber-900 dark:text-amber-100">
+                      Tipo {{ report()?.calculatedScores?.['bristol_type'] }}
+                    </span>
+                    <p class="text-[10px] text-amber-700 dark:text-amber-300 mt-0.5">
+                      Consistencia Fecal
+                    </p>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- 5. Cuerpo de Hallazgos Clínicos Renderizados con el Motor Dinámico -->
+          @if (activeTemplateSchema()) {
+            <div class="space-y-3 pt-2">
+              <h4 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider print:text-black flex items-center gap-1.5 border-b border-slate-200 dark:border-darkBg-700 pb-1.5">
+                <i class="fa-solid fa-stethoscope text-brand-600 dark:text-brand-400 print:text-black text-xs"></i>
+                <span>Detalle de Fases Clínicas & Exploración</span>
+              </h4>
+
+              <app-dynamic-form
+                [schema]="activeTemplateSchema()"
+                [data]="report()?.formData || {}"
+                [mode]="'readonly'">
+              </app-dynamic-form>
+            </div>
+          }
+
+          <!-- 6. Modalidades de Tratamiento & Prescripción Domiciliaria -->
+          @if (report()?.treatments && report()!.treatments!.length > 0) {
+            <div class="space-y-2 pt-2">
+              <h4 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider print:text-black flex items-center gap-1.5 border-b border-slate-200 dark:border-darkBg-700 pb-1.5">
+                <i class="fa-solid fa-kit-medical text-emerald-600 print:text-black text-xs"></i>
+                <span>Plan de Tratamiento & Prescripción Domiciliaria</span>
+              </h4>
+
+              <div class="border border-slate-200 dark:border-darkBg-700 rounded-xl overflow-hidden">
+                <table class="w-full text-left text-xs">
+                  <thead class="bg-slate-50 dark:bg-darkBg-750 text-slate-500 font-bold border-b border-slate-200 dark:border-darkBg-700">
+                    <tr>
+                      <th class="py-2 px-3">Modalidad / Técnica</th>
+                      <th class="py-2 px-3">Dosificación / Parámetros</th>
+                      <th class="py-2 px-3">Zona / Foco</th>
+                      <th class="py-2 px-3">Indicación Domiciliaria</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100 dark:divide-darkBg-700">
+                    @for (tr of report()?.treatments; track tr.name) {
+                      <tr>
+                        <td class="py-2 px-3 font-bold">{{ tr.name }}</td>
+                        <td class="py-2 px-3 font-mono text-[11px]">{{ tr.dosageParameters }}</td>
+                        <td class="py-2 px-3 text-slate-500">{{ tr.targetZone || '-' }}</td>
+                        <td class="py-2 px-3 text-emerald-700 dark:text-emerald-300 print:text-black font-medium">
+                          {{ tr.homePrescription || 'Sin pautas especiales' }}
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          }
+
+          <!-- 7. Pie de Firma y Sello Profesional -->
+          <div class="pt-8 border-t border-slate-200 dark:border-darkBg-700 flex flex-col sm:flex-row items-center justify-between gap-6 print:pt-12">
+            <div class="text-[10px] text-slate-400 print:text-slate-500 max-w-sm">
+              <p class="font-bold">Validez Médico-Legal & Confidencialidad</p>
+              <p class="mt-0.5">
+                Documento médico generado electrónicamente mediante ATS Health EHR. Contiene datos de salud protegidos conforme a la legislación vigente de confidencialidad y derechos del paciente.
+              </p>
+              <p class="font-mono mt-1 text-[9px]">
+                ID: {{ report()?.metadata?.encUuid }} • Emitido: {{ report()?.generatedAt | date:'dd/MM/yyyy HH:mm:ss' }}
+              </p>
+            </div>
+
+            <!-- Recuadro de Firma -->
+            <div class="text-center min-w-[200px] border-t border-slate-300 dark:border-darkBg-600 print:border-black pt-2">
+              <p class="text-xs font-bold text-slate-900 dark:text-white print:text-black">
+                {{ report()?.metadata?.practitionerName }}
+              </p>
+              <p class="text-[10px] text-slate-500 print:text-black">
+                Firma & Matrícula Profesional
+              </p>
+              @if (report()?.metadata?.signedAt) {
+                <span class="inline-block mt-1 text-[9px] font-mono font-bold text-emerald-700 dark:text-emerald-400 print:text-black">
+                  Firma Digital Verificada
+                </span>
+              }
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+}
