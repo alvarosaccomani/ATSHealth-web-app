@@ -1,7 +1,7 @@
-import { Component, OnInit, effect, inject, signal, viewChild } from '@angular/core';
+import { Component, OnInit, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BiologicalSex, PatientStickyBarComponent } from '../patient-sticky-bar/patient-sticky-bar.component';
-import { StageBarComponent } from '../stage-bar/stage-bar.component';
+import { StageBarComponent, StageItem } from '../stage-bar/stage-bar.component';
 import { Stage1AnamnesisComponent } from '../stages/stage-1-anamnesis/stage-1-anamnesis.component';
 import { Stage2PhysicalExamComponent } from '../stages/stage-2-physical-exam/stage-2-physical-exam.component';
 import { Stage3TreatmentPlanComponent } from '../stages/stage-3-treatment-plan/stage-3-treatment-plan.component';
@@ -18,6 +18,8 @@ import {
   EncounterTemplateMeta,
   UpdateEncounterPayload,
 } from '@interfaces/encounter';
+import { DynamicStageSchema, DynamicTemplateSchema } from '@interfaces/dynamic-form';
+import { DynamicFormComponent } from '@components/dynamic-form';
 
 @Component({
   selector: 'app-encounter',
@@ -29,6 +31,7 @@ import {
     Stage2PhysicalExamComponent,
     Stage3TreatmentPlanComponent,
     Stage4EvolutionComponent,
+    DynamicFormComponent,
   ],
   templateUrl: './encounter.component.html',
   styleUrl: './encounter.component.scss',
@@ -53,6 +56,39 @@ export class EncounterComponent implements OnInit {
   readonly activeSex = signal<BiologicalSex>('femenino');
   readonly isLoading = signal<boolean>(false);
   readonly isSaving = this.encountersService.isSaving;
+
+  // Estado del Motor Dinámico
+  readonly dynamicData = signal<Record<string, any>>({});
+  readonly isLocked = computed(() => this.encountersService.activeEncounter()?.enc_status === 'SIGNED_LOCKED');
+
+  readonly isPelviEval = computed(() => {
+    const code = this.templatesService.activeTemplate()?.tpl_code;
+    return !code || code === 'PELVI_EVAL';
+  });
+
+  readonly templateStages = computed<DynamicStageSchema[]>(() => {
+    const schema = this.templatesService.activeTemplate()?.tpl_schema as DynamicTemplateSchema | undefined;
+    return schema?.stages && Array.isArray(schema.stages) ? schema.stages : [];
+  });
+
+  readonly totalDynamicStages = computed(() => this.templateStages().length);
+
+  readonly currentDynamicStage = computed<DynamicStageSchema | null>(() => {
+    const stages = this.templateStages();
+    const index = this.activeStage() - 1;
+    return stages[index] || null;
+  });
+
+  readonly stageBarItems = computed<StageItem[]>(() => {
+    if (this.isPelviEval()) {
+      return [];
+    }
+    return this.templateStages().map((st: DynamicStageSchema, i: number) => ({
+      id: i + 1,
+      tag: `Etapa ${i + 1}`,
+      label: st.title,
+    }));
+  });
 
   constructor() {
     // Sincroniza el sexo biológico con el paciente activo en todo momento
@@ -175,6 +211,9 @@ export class EncounterComponent implements OnInit {
       if (formData['evolution']) {
         this.stage4()?.hydrateData(formData['evolution']);
       }
+      if (formData['dynamic_fields']) {
+        this.dynamicData.set(formData['dynamic_fields']);
+      }
     } else if (encounter.treatments) {
       this.stage3()?.hydrateData({}, encounter.treatments);
     }
@@ -224,6 +263,7 @@ export class EncounterComponent implements OnInit {
       physical_exam: s2,
       treatment_plan: s3,
       evolution: s4,
+      dynamic_fields: this.dynamicData(),
       consultJob: sticky?.['consultJob'],
       consultGoal: sticky?.['consultGoal'],
     };
