@@ -23,13 +23,13 @@
         </div>
 
         <span class="text-[10px] font-mono text-slate-400 font-semibold uppercase">
-          {{ sec.fields.length }} campos
+          {{ sec.fields?.length || 0 }} campos
         </span>
       </div>
 
       <!-- Grilla de Campos Dinámicos -->
       <div class="p-5 grid gap-4" [class]="getGridColumnsClass(sec.columns)">
-        @for (fld of sec.fields; track fld.id) {
+        @for (fld of sec.fields || []; track fld.id) {
           <app-dynamic-field
             [field]="fld"
             [value]="getFieldValue(fld.id)"
