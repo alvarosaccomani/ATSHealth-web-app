@@ -1,4 +1,4 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -23,6 +23,18 @@ export class EncountersService {
   readonly isLoading = signal<boolean>(false);
   readonly isSaving = signal<boolean>(false);
   readonly errorMessage = signal<string | null>(null);
+
+  /**
+   * @description Sesión pendiente o en borrador (IN_PROGRESS) del paciente activo, si existiese.
+   */
+  readonly openSession = computed(() =>
+    this.encounters().find((enc) => enc.enc_status === 'IN_PROGRESS') || null
+  );
+
+  /**
+   * @description Indica si el paciente tiene actualmente una consulta abierta sin firmar.
+   */
+  readonly hasOpenSession = computed(() => !!this.openSession());
 
   selectEncounter(encounter: EncounterInterface | null): void {
     this.activeEncounter.set(encounter);
