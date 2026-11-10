@@ -20,6 +20,8 @@ import {
 } from '@interfaces/encounter';
 import { DynamicStageSchema, DynamicTemplateSchema } from '@interfaces/dynamic-form';
 import { DynamicFormComponent } from '@components/dynamic-form';
+import { ClinicalReportModalComponent } from '@components/clinical-report-modal';
+import { ClinicalReportService } from '@services/clinical-report.service';
 
 @Component({
   selector: 'app-encounter',
@@ -32,6 +34,7 @@ import { DynamicFormComponent } from '@components/dynamic-form';
     Stage3TreatmentPlanComponent,
     Stage4EvolutionComponent,
     DynamicFormComponent,
+    ClinicalReportModalComponent,
   ],
   templateUrl: './encounter.component.html',
   styleUrl: './encounter.component.scss',
@@ -44,6 +47,7 @@ export class EncounterComponent implements OnInit {
   private readonly authService = inject(AuthService);
   readonly encountersService = inject(EncountersService);
   readonly templatesService = inject(TemplatesService);
+  readonly clinicalReportService = inject(ClinicalReportService);
   private readonly toast = inject(ToastService);
 
   readonly stickyBar = viewChild<PatientStickyBarComponent>('stickyBar');

@@ -4,6 +4,7 @@
   (onSave)="saveConsultation()"
   (onSign)="signConsultation()"
   (sessionSelect)="loadEncounter($event)"
+  (onPrint)="clinicalReportService.openReport()"
 />
 <app-stage-bar [(currentStage)]="activeStage" [customStages]="stageBarItems()" />
 <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 w-full flex-1">
@@ -104,3 +105,5 @@
     }
   }
 </main>
+
+<app-clinical-report-modal />
