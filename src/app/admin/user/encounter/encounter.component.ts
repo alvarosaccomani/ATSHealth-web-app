@@ -15,6 +15,7 @@ import { ToastService } from '@services/toast.service';
 import {
   CreateEncounterPayload,
   EncounterInterface,
+  EncounterTemplateMeta,
   UpdateEncounterPayload,
 } from '@interfaces/encounter';
 
@@ -178,8 +179,9 @@ export class EncounterComponent implements OnInit {
       this.stage3()?.hydrateData({}, encounter.treatments);
     }
 
-    if (encounter.tpl_uuid) {
-      const match = this.templatesService.templates().find((t) => t.tpl_uuid === encounter.tpl_uuid);
+    const tplUuid = encounter.tpl_uuid || encounter.encounter_data?.encd_formdata?.['_meta']?.tpl_uuid;
+    if (tplUuid) {
+      const match = this.templatesService.templates().find((t) => t.tpl_uuid === tplUuid);
       if (match) {
         this.templatesService.selectTemplate(match);
       }
@@ -234,14 +236,30 @@ export class EncounterComponent implements OnInit {
       bristol_type: s1?.['bristol']?.selectedType ?? null,
     };
 
+    const activeTpl = this.templatesService.activeTemplate();
+    const templateMeta: EncounterTemplateMeta = {
+      tpl_uuid: activeTpl?.tpl_uuid || '',
+      tpl_code: activeTpl?.tpl_code || 'PELVI_EVAL',
+      tpl_name: activeTpl?.tpl_name || 'Evaluación de Piso Pélvico',
+      tpl_version: activeTpl?.tpl_version || '1.0.0',
+      captured_at: new Date().toISOString(),
+    };
+
     // BIFURCACIÓN: Actualización si ya existe la sesión y está IN_PROGRESS
     if (activeEnc?.enc_uuid && activeEnc.enc_status === 'IN_PROGRESS') {
+      const existingFormData = activeEnc.encounter_data?.encd_formdata || {};
+      const mergedFormData = {
+        ...existingFormData,
+        ...formData,
+        _meta: existingFormData['_meta'] || templateMeta,
+      };
+
       const updatePayload: UpdateEncounterPayload = {
         enc_status: isCompleted ? 'SIGNED_LOCKED' : 'IN_PROGRESS',
         enc_reason: sticky?.['consultReason'] || null,
         enc_signedat: isCompleted ? new Date().toISOString() : undefined,
         enc_signedby: isCompleted ? currentUser?.usr_uuid : undefined,
-        form_data: formData,
+        form_data: mergedFormData,
         calculated_scores: calculatedScores,
         treatments,
       };
@@ -271,16 +289,21 @@ export class EncounterComponent implements OnInit {
     }
 
     // CREACIÓN de nueva sesión en blanco
+    const initialFormData = {
+      ...formData,
+      _meta: templateMeta,
+    };
+
     const payload: CreateEncounterPayload = {
       cmp_uuid: activeCmp.cmp_uuid,
       pat_uuid: activePat.pat_uuid,
       usr_uuid_practitioner: currentUser?.usr_uuid,
-      tpl_uuid: this.templatesService.activeTemplate()?.tpl_uuid || null,
+      tpl_uuid: activeTpl?.tpl_uuid || null,
       enc_type: 'CONSULTATION',
       enc_status: isCompleted ? 'SIGNED_LOCKED' : 'IN_PROGRESS',
       enc_date: sticky?.['consultDate'] || new Date().toISOString(),
       enc_reason: sticky?.['consultReason'] || null,
-      form_data: formData,
+      form_data: initialFormData,
       calculated_scores: calculatedScores,
       treatments,
     };
