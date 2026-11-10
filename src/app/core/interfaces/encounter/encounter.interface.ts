@@ -1,3 +1,11 @@
+export interface EncounterTemplateMeta {
+  tpl_uuid: string;
+  tpl_code: string;
+  tpl_name: string;
+  tpl_version?: string;
+  captured_at: string;
+}
+
 export interface EncounterDataInterface {
   cmp_uuid: string;
   enc_uuid: string;
