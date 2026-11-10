@@ -61,13 +61,18 @@ export class EncounterComponent implements OnInit {
   readonly isLoading = signal<boolean>(false);
   readonly isSaving = this.encountersService.isSaving;
 
-  // Estado del Motor Dinámico
+  // Estado del Motor Dinámico & Selector de Modo Conmutable
   readonly dynamicData = signal<Record<string, any>>({});
+  readonly renderEngineMode = signal<'legacy_static' | 'dynamic'>('legacy_static');
   readonly isLocked = computed(() => this.encountersService.activeEncounter()?.enc_status === 'SIGNED_LOCKED');
 
   readonly isPelviEval = computed(() => {
     const code = this.templatesService.activeTemplate()?.tpl_code;
     return !code || code === 'PELVI_EVAL';
+  });
+
+  readonly shouldUseStaticPelviStages = computed(() => {
+    return this.isPelviEval() && this.renderEngineMode() === 'legacy_static';
   });
 
   readonly templateStages = computed<DynamicStageSchema[]>(() => {
@@ -84,7 +89,7 @@ export class EncounterComponent implements OnInit {
   });
 
   readonly stageBarItems = computed<StageItem[]>(() => {
-    if (this.isPelviEval()) {
+    if (this.shouldUseStaticPelviStages()) {
       return [];
     }
     return this.templateStages().map((st: DynamicStageSchema, i: number) => ({
@@ -93,6 +98,16 @@ export class EncounterComponent implements OnInit {
       label: st.title,
     }));
   });
+
+  toggleEngineMode(): void {
+    const nextMode = this.renderEngineMode() === 'legacy_static' ? 'dynamic' : 'legacy_static';
+    this.renderEngineMode.set(nextMode);
+    this.toast.info(
+      nextMode === 'dynamic'
+        ? 'Activado Motor Dinámico de Plantillas (PELVI_EVAL EHR)'
+        : 'Activado Modo Legado (Componentes Estáticos)'
+    );
+  }
 
   constructor() {
     // Sincroniza el sexo biológico con el paciente activo en todo momento

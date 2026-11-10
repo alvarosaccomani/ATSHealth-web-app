@@ -7,8 +7,27 @@
   (onPrint)="clinicalReportService.openReport()"
 />
 <app-stage-bar [(currentStage)]="activeStage" [customStages]="stageBarItems()" />
+
+<!-- Conmutador de Motor de Renderizado (Piso Pélvico) -->
+@if (isPelviEval()) {
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-1 flex items-center justify-end no-print">
+    <button
+      type="button"
+      (click)="toggleEngineMode()"
+      title="Alternar entre el motor dinámico de plantillas y los componentes estáticos originales"
+      class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold border transition-all cursor-pointer shadow-2xs"
+      [class]="renderEngineMode() === 'dynamic' 
+        ? 'bg-brand-50 dark:bg-brand-950/80 border-brand-300 dark:border-brand-800 text-brand-700 dark:text-brand-300' 
+        : 'bg-white dark:bg-darkBg-800 border-slate-200 dark:border-darkBg-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-darkBg-750'">
+      <i [class]="renderEngineMode() === 'dynamic' ? 'fa-solid fa-wand-magic-sparkles text-brand-600 dark:text-brand-400' : 'fa-solid fa-cube text-slate-400'"></i>
+      <span>Motor: <strong>{{ renderEngineMode() === 'dynamic' ? 'Dinámico (PELVI_EVAL EHR)' : 'Estático (Legado)' }}</strong></span>
+      <span class="text-[10px] px-1.5 py-0.5 rounded-md font-mono uppercase bg-slate-100 dark:bg-darkBg-700 text-slate-500 dark:text-slate-400 ml-1">Cambiar</span>
+    </button>
+  </div>
+}
+
 <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 w-full flex-1">
-  @if (isPelviEval()) {
+  @if (shouldUseStaticPelviStages()) {
     <div [class.hidden]="activeStage() !== 1">
       <app-stage-1-anamnesis
         #stage1
