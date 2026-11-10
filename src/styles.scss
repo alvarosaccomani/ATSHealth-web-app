@@ -52,4 +52,62 @@ body {
     background: white !important;
     color: black !important;
   }
+
+  /* Aislamiento total de impresión para el informe clínico y epicrisis */
+  body.report-modal-open,
+  body:has(.report-sheet) {
+    background: #ffffff !important;
+
+    app-sidebar,
+    app-nav-bar,
+    app-footer,
+    app-patient-sticky-bar,
+    app-stage-bar,
+    main {
+      display: none !important;
+    }
+
+    app-clinical-report-modal {
+      display: block !important;
+      position: static !important;
+      width: 100% !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+
+    .report-modal-overlay {
+      position: static !important;
+      background: transparent !important;
+      padding: 0 !important;
+      display: block !important;
+      overflow: visible !important;
+    }
+
+    .report-modal-window {
+      position: static !important;
+      box-shadow: none !important;
+      border: none !important;
+      border-radius: 0 !important;
+      max-height: none !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      overflow: visible !important;
+      background: #ffffff !important;
+    }
+
+    .report-sheet-container {
+      padding: 0 !important;
+      background: transparent !important;
+      overflow: visible !important;
+    }
+
+    .report-sheet {
+      border: none !important;
+      box-shadow: none !important;
+      border-radius: 0 !important;
+      padding: 0 !important;
+      max-width: 100% !important;
+      background: #ffffff !important;
+    }
+  }
 }
