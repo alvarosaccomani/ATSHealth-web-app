@@ -12,8 +12,15 @@ export const APPLICATION_ROUTES: Routes = [
     children: [
       {
         path: '',
-        redirectTo: '/admin/user/patients',
+        redirectTo: 'templates',
         pathMatch: 'full',
+      },
+      {
+        path: 'templates',
+        loadComponent: () =>
+          import('./templates/templates.component').then(
+            (c) => c.TemplatesComponent
+          ),
       },
     ],
   },
