@@ -1,1 +1,45 @@
-<p>dynamic-form works!</p>
+<div class="space-y-6">
+  @for (sec of sectionsToRender(); track sec.id) {
+    <div class="rounded-2xl bg-white dark:bg-darkBg-800 border border-slate-200/80 dark:border-darkBg-700 shadow-xs overflow-hidden transition-all">
+      
+      <!-- Encabezado de la Sección -->
+      <div class="px-5 py-3.5 bg-slate-50/70 dark:bg-darkBg-750/50 border-b border-slate-100 dark:border-darkBg-700 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          @if (sec.icon) {
+            <div class="w-7 h-7 rounded-lg bg-brand-50 dark:bg-brand-950/70 border border-brand-200 dark:border-brand-800 text-brand-700 dark:text-brand-300 flex items-center justify-center text-xs">
+              <i [class]="'fa-solid ' + sec.icon"></i>
+            </div>
+          }
+          <div>
+            <h4 class="text-xs font-bold text-slate-800 dark:text-slate-100">
+              {{ sec.title }}
+            </h4>
+            @if (sec.description) {
+              <p class="text-[11px] text-slate-400 mt-0.5">
+                {{ sec.description }}
+              </p>
+            }
+          </div>
+        </div>
+
+        <span class="text-[10px] font-mono text-slate-400 font-semibold uppercase">
+          {{ sec.fields.length }} campos
+        </span>
+      </div>
+
+      <!-- Grilla de Campos Dinámicos -->
+      <div class="p-5 grid gap-4" [class]="getGridColumnsClass(sec.columns)">
+        @for (fld of sec.fields; track fld.id) {
+          <app-dynamic-field
+            [field]="fld"
+            [value]="getFieldValue(fld.id)"
+            (valueChange)="setFieldValue(fld.id, $event)"
+            [mode]="mode()"
+            [contextData]="data()">
+          </app-dynamic-field>
+        }
+      </div>
+
+    </div>
+  }
+</div>
