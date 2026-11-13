@@ -1,44 +1,388 @@
 <div class="space-y-6">
   @for (sec of sectionsToRender(); track sec.id) {
-    <div class="rounded-2xl bg-white dark:bg-darkBg-800 border border-slate-200/80 dark:border-darkBg-700 shadow-xs overflow-hidden transition-all">
+    <div [class]="'rounded-2xl bg-white dark:bg-darkBg-800 border shadow-xs overflow-hidden transition-all ' + getSectionTheme(sec).container">
       
-      <!-- Encabezado de la Sección -->
-      <div class="px-5 py-3.5 bg-slate-50/70 dark:bg-darkBg-750/50 border-b border-slate-100 dark:border-darkBg-700 flex items-center justify-between">
+      <!-- Encabezado Tematizado de la Sección -->
+      <div [class]="'px-5 py-3.5 border-b flex items-center justify-between ' + getSectionTheme(sec).header">
         <div class="flex items-center gap-2.5">
           @if (sec.icon) {
-            <div class="w-7 h-7 rounded-lg bg-brand-50 dark:bg-brand-950/70 border border-brand-200 dark:border-brand-800 text-brand-700 dark:text-brand-300 flex items-center justify-center text-xs">
+            <div [class]="'w-7 h-7 rounded-lg border flex items-center justify-center text-xs shadow-2xs ' + getSectionTheme(sec).iconBg + ' ' + getSectionTheme(sec).iconText">
               <i [class]="'fa-solid ' + sec.icon"></i>
             </div>
           }
           <div>
-            <h4 class="text-xs font-bold text-slate-800 dark:text-slate-100">
+            <h4 class="text-xs font-bold">
               {{ sec.title }}
             </h4>
             @if (sec.description) {
-              <p class="text-[11px] text-slate-400 mt-0.5">
+              <p class="text-[11px] opacity-75 mt-0.5">
                 {{ sec.description }}
               </p>
             }
           </div>
         </div>
 
-        <span class="text-[10px] font-mono text-slate-400 font-semibold uppercase">
-          {{ sec.fields?.length || 0 }} campos
-        </span>
+        <!-- Badges de Estado o Indicadores Especiales -->
+        <div class="flex items-center gap-2">
+          @if (sec.type === 'score_card' && sec.id === 'sec_iciq') {
+            <div class="flex items-center gap-3 bg-white dark:bg-darkBg-750 py-1 px-3 rounded-xl border border-slate-200 dark:border-darkBg-700 shadow-2xs">
+              <div class="text-right">
+                <span class="text-[9px] text-slate-400 uppercase tracking-wider font-bold block">Puntaje Total</span>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                  [class]="getIciqCalculated().score === 0 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300' :
+                           getIciqCalculated().score <= 5 ? 'bg-teal-100 text-teal-700 dark:bg-teal-950 dark:text-teal-300' :
+                           getIciqCalculated().score <= 12 ? 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300' :
+                           getIciqCalculated().score <= 18 ? 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300' :
+                           'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300'">
+                  {{ getIciqCalculated().severity }}
+                </span>
+              </div>
+              <div class="text-xl font-black text-brand-600 dark:text-brand-400 border-l border-slate-200 dark:border-darkBg-700 pl-2.5">
+                <span>{{ getIciqCalculated().score }}</span><span class="text-xs text-slate-400 font-normal">/21</span>
+              </div>
+            </div>
+          } @else if (sec.type === 'table_dynamic') {
+            <div class="flex items-center gap-1.5 text-[10px] font-mono font-bold">
+              <span class="px-2 py-0.5 rounded-md bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300 border border-teal-200 dark:border-teal-900">
+                Ingesta: {{ getTableTotals(sec).totalIntake }} ml
+              </span>
+              <span class="px-2 py-0.5 rounded-md bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300 border border-sky-200 dark:border-sky-900">
+                Diuresis: {{ getTableTotals(sec).totalVoid }} ml
+              </span>
+              <span class="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border border-amber-200 dark:border-amber-900">
+                Escapes: {{ getTableTotals(sec).totalLeaks }}
+              </span>
+            </div>
+          } @else {
+            <span class="text-[10px] font-mono opacity-70 font-semibold uppercase">
+              {{ sec.fields?.length || 0 }} campos
+            </span>
+          }
+        </div>
       </div>
 
-      <!-- Grilla de Campos Dinámicos -->
-      <div class="p-5 grid gap-4" [class]="getGridColumnsClass(sec.columns)">
-        @for (fld of sec.fields || []; track fld.id) {
-          <app-dynamic-field
-            [field]="fld"
-            [value]="getFieldValue(fld.id)"
-            (valueChange)="setFieldValue(fld.id, $event)"
-            [mode]="mode()"
-            [contextData]="data()">
-          </app-dynamic-field>
-        }
-      </div>
+      <!-- CASO A: TABLA DINÁMICA (Ej: Diario Miccional / Balance Hídrico) -->
+      @if (sec.type === 'table_dynamic') {
+        <div class="p-5 space-y-4">
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs text-left">
+              <thead>
+                <tr class="text-slate-400 uppercase text-[10px] border-b border-slate-200 dark:border-darkBg-700">
+                  <th class="py-2 px-2">Hora</th>
+                  <th class="py-2 px-2">Ingesta Líquida (ml / Tipo)</th>
+                  <th class="py-2 px-2">Vol. Miccional (ml)</th>
+                  <th class="py-2 px-2">Urgencia (0-3)</th>
+                  <th class="py-2 px-2">¿Escape? / Actividad</th>
+                  @if (mode() === 'edit') {
+                    <th class="py-2 px-2 text-center w-16">Acción</th>
+                  }
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 dark:divide-darkBg-700 text-slate-700 dark:text-slate-300">
+                @for (row of getTableRows(sec); track $index) {
+                  <tr>
+                    <td class="py-2 px-2 font-mono font-bold w-24">
+                      @if (mode() === 'edit') {
+                        <input
+                          type="time"
+                          [value]="row.time || '08:00'"
+                          (input)="updateTableCell(sec.id, $index, 'time', $any($event.target).value)"
+                          class="p-1 rounded-md border border-slate-200 dark:border-darkBg-700 bg-white dark:bg-darkBg-750 text-xs font-mono">
+                      } @else {
+                        <span>{{ row.time }}</span>
+                      }
+                    </td>
+                    <td class="py-2 px-2">
+                      @if (mode() === 'edit') {
+                        <div class="flex items-center gap-1.5">
+                          <input
+                            type="number"
+                            min="0"
+                            step="50"
+                            [value]="row.intakeVol || 0"
+                            (input)="updateTableCell(sec.id, $index, 'intakeVol', +$any($event.target).value)"
+                            class="w-20 p-1 rounded-md border border-slate-200 dark:border-darkBg-700 bg-white dark:bg-darkBg-750 text-xs font-mono font-bold text-teal-700 dark:text-teal-300">
+                          <span class="text-[10px] text-slate-400">ml</span>
+                          <input
+                            type="text"
+                            placeholder="Tipo (ej. Agua)"
+                            [value]="row.intakeType || ''"
+                            (input)="updateTableCell(sec.id, $index, 'intakeType', $any($event.target).value)"
+                            class="w-28 p-1 rounded-md border border-slate-200 dark:border-darkBg-700 bg-white dark:bg-darkBg-750 text-xs">
+                        </div>
+                      } @else {
+                        <span class="font-bold text-teal-700 dark:text-teal-300">{{ row.intakeVol }} ml</span>
+                        <span class="text-slate-400 ml-1">({{ row.intakeType || 'Líquido' }})</span>
+                      }
+                    </td>
+                    <td class="py-2 px-2">
+                      @if (mode() === 'edit') {
+                        <div class="flex items-center gap-1.5">
+                          <input
+                            type="number"
+                            min="0"
+                            step="50"
+                            [value]="row.voidVol || 0"
+                            (input)="updateTableCell(sec.id, $index, 'voidVol', +$any($event.target).value)"
+                            class="w-20 p-1 rounded-md border border-slate-200 dark:border-darkBg-700 bg-white dark:bg-darkBg-750 text-xs font-mono font-bold text-sky-700 dark:text-sky-300">
+                          <span class="text-[10px] text-slate-400">ml</span>
+                        </div>
+                      } @else {
+                        <span class="font-bold text-sky-700 dark:text-sky-300">{{ row.voidVol }} ml</span>
+                      }
+                    </td>
+                    <td class="py-2 px-2">
+                      @if (mode() === 'edit') {
+                        <select
+                          [value]="row.urgency || '0'"
+                          (change)="updateTableCell(sec.id, $index, 'urgency', $any($event.target).value)"
+                          class="p-1 rounded-md border border-slate-200 dark:border-darkBg-700 bg-white dark:bg-darkBg-750 text-xs font-semibold">
+                          <option value="0">0: Sin urgencia</option>
+                          <option value="1">1: Leve</option>
+                          <option value="2">2: Moderada</option>
+                          <option value="3">3: Severa</option>
+                        </select>
+                      } @else {
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold"
+                          [class.bg-slate-100]="row.urgency === '0'"
+                          [class.text-slate-700]="row.urgency === '0'"
+                          [class.bg-amber-100]="row.urgency === '1' || row.urgency === '2'"
+                          [class.text-amber-800]="row.urgency === '1' || row.urgency === '2'"
+                          [class.bg-rose-100]="row.urgency === '3'"
+                          [class.text-rose-800]="row.urgency === '3'">
+                          Urgencia {{ row.urgency || '0' }}
+                        </span>
+                      }
+                    </td>
+                    <td class="py-2 px-2">
+                      @if (mode() === 'edit') {
+                        <div class="flex items-center gap-2">
+                          <label class="flex items-center gap-1 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              [checked]="!!row.leak"
+                              (change)="updateTableCell(sec.id, $index, 'leak', $any($event.target).checked)"
+                              class="rounded text-rose-600 focus:ring-rose-500">
+                            <span class="text-[10px] font-bold" [class.text-rose-600]="row.leak">Escape</span>
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="Actividad / Desencadenante"
+                            [value]="row.activity || ''"
+                            (input)="updateTableCell(sec.id, $index, 'activity', $any($event.target).value)"
+                            class="p-1 rounded-md border border-slate-200 dark:border-darkBg-700 bg-white dark:bg-darkBg-750 text-xs flex-1">
+                        </div>
+                      } @else {
+                        <span [class]="row.leak ? 'font-bold text-rose-600' : 'text-slate-500'">
+                          {{ row.leak ? 'Sí (Escape)' : 'No' }}
+                        </span>
+                        @if (row.activity) {
+                          <span class="text-[10px] text-slate-400 ml-1">({{ row.activity }})</span>
+                        }
+                      }
+                    </td>
+                    @if (mode() === 'edit') {
+                      <td class="py-2 px-2 text-center">
+                        <button
+                          type="button"
+                          (click)="removeTableRow(sec.id, $index)"
+                          title="Eliminar fila"
+                          class="p-1 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 cursor-pointer transition-colors">
+                          <i class="fa-solid fa-trash-can text-xs"></i>
+                        </button>
+                      </td>
+                    }
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          @if (mode() === 'edit') {
+            <div class="pt-2 border-t border-slate-100 dark:border-darkBg-700 flex items-center justify-between">
+              <button
+                type="button"
+                (click)="addTableRow(sec)"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-teal-50 dark:bg-teal-950/70 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800 hover:bg-teal-100 dark:hover:bg-teal-900/50 transition-all cursor-pointer">
+                <i class="fa-solid fa-plus text-xs"></i>
+                <span>Agregar Registro Miccional</span>
+              </button>
+
+              <div class="text-[11px] font-mono text-slate-500 dark:text-slate-400">
+                Balance Neto: <strong [class.text-rose-600]="getTableTotals(sec).totalIntake - getTableTotals(sec).totalVoid < 0" [class.text-teal-600]="getTableTotals(sec).totalIntake - getTableTotals(sec).totalVoid >= 0">
+                  {{ getTableTotals(sec).totalIntake - getTableTotals(sec).totalVoid > 0 ? '+' : '' }}{{ getTableTotals(sec).totalIntake - getTableTotals(sec).totalVoid }} ml
+                </strong>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- CASO B: VISOR 3D ANATÓMICO (Visor 3D Perineal / Muscular) -->
+      @else if (sec.type === 'anatomy_3d_viewer') {
+        <div class="p-5">
+          <app-clinical-3d-viewer
+            [config]="getSection3dConfig(sec)"
+            [highlightedMeshIds]="getFieldValue(sec.id) || {}"
+            (structureClicked)="onStructure3dClicked(sec.id, $event)">
+          </app-clinical-3d-viewer>
+        </div>
+      }
+
+      <!-- CASO C: CONSTRUCTOR DE MODALIDADES DE TRATAMIENTO -->
+      @else if (sec.type === 'treatment_builder') {
+        <div class="p-5 space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            @for (mod of getStandardModalities(sec); track mod.id) {
+              <div class="p-4 rounded-xl border border-slate-200 dark:border-darkBg-700 bg-slate-50/70 dark:bg-darkBg-750 space-y-3">
+                <div class="flex items-center justify-between pb-2 border-b border-slate-200/60 dark:border-darkBg-700">
+                  <div class="flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-md bg-brand-50 dark:bg-brand-950 text-brand-600 dark:text-brand-400 flex items-center justify-center text-xs">
+                      <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    </span>
+                    <span class="text-xs font-bold text-slate-800 dark:text-slate-200">{{ mod.name }}</span>
+                  </div>
+                  @if (mode() === 'edit') {
+                    <label class="flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-slate-600 dark:text-slate-300">
+                      <input
+                        type="checkbox"
+                        [checked]="!!mod.checked"
+                        (change)="toggleModality(mod.id, sec)"
+                        class="rounded text-brand-600 focus:ring-brand-500">
+                      <span>Aplicar</span>
+                    </label>
+                  } @else {
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full" [class.bg-emerald-100]="mod.checked" [class.text-emerald-700]="mod.checked" [class.bg-slate-100]="!mod.checked" [class.text-slate-500]="!mod.checked">
+                      {{ mod.checked ? 'Prescrito' : 'Omitido' }}
+                    </span>
+                  }
+                </div>
+
+                @if (mod.fields && mod.fields.length > 0) {
+                  <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">
+                    @for (fld of mod.fields; track fld.key) {
+                      <div class="space-y-1">
+                        <label class="block text-[10px] font-semibold text-slate-500 dark:text-slate-400">{{ fld.label }}</label>
+                        @if (mode() === 'edit') {
+                          <input
+                            type="number"
+                            [value]="fld.defaultValue"
+                            (input)="updateModalityField(mod.id, fld.key, +$any($event.target).value, sec)"
+                            class="w-full px-2 py-1 rounded-lg border border-slate-200 dark:border-darkBg-700 bg-white dark:bg-darkBg-750 text-xs font-mono font-bold text-brand-700 dark:text-brand-300">
+                        } @else {
+                          <span class="font-mono font-bold text-xs">{{ fld.defaultValue }}</span>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+
+                @if (mod.dosageParameters) {
+                  <p class="text-[11px] text-slate-500 dark:text-slate-400 italic bg-white dark:bg-darkBg-800 p-2 rounded-lg border border-slate-100 dark:border-darkBg-700">
+                    {{ mod.dosageParameters }}
+                  </p>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- CASO D: DASHBOARD DE ANALÍTICA & CURVAS EVOLUTIVAS -->
+      @else if (sec.type === 'charts_dashboard') {
+        <div class="p-5 grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <!-- Gráfico 1: Radar Biomecánico Laycock PERFECT -->
+          <div class="p-4 rounded-xl border border-slate-200 dark:border-darkBg-700 bg-slate-50/70 dark:bg-darkBg-750 space-y-3">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-200/60 dark:border-darkBg-700">
+              <h5 class="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                <i class="fa-solid fa-chart-pie text-brand-600"></i> Radar Biomecánico Laycock PERFECT
+              </h5>
+              <span class="text-[10px] font-mono text-slate-400">Basal vs Control</span>
+            </div>
+            <div class="flex items-center justify-center p-3">
+              <svg viewBox="0 0 200 200" class="w-48 h-48 drop-shadow-xs">
+                <!-- Telaraña de fondo -->
+                <polygon points="100,20 176,75 147,165 53,165 24,75" fill="none" stroke="#e2e8f0" stroke-width="1.5" class="dark:stroke-slate-700" />
+                <polygon points="100,50 148,85 130,140 70,140 52,85" fill="none" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="2 2" class="dark:stroke-slate-600" />
+                <line x1="100" y1="100" x2="100" y2="20" stroke="#cbd5e1" class="dark:stroke-slate-700" />
+                <line x1="100" y1="100" x2="176" y2="75" stroke="#cbd5e1" class="dark:stroke-slate-700" />
+                <line x1="100" y1="100" x2="147" y2="165" stroke="#cbd5e1" class="dark:stroke-slate-700" />
+                <line x1="100" y1="100" x2="53" y2="165" stroke="#cbd5e1" class="dark:stroke-slate-700" />
+                <line x1="100" y1="100" x2="24" y2="75" stroke="#cbd5e1" class="dark:stroke-slate-700" />
+                <!-- Serie Basal (Gris) -->
+                <polygon points="100,60 135,90 120,130 80,130 65,90" fill="rgba(148, 163, 184, 0.25)" stroke="#94a3b8" stroke-width="1.5" />
+                <!-- Serie Actual (Celeste Marca) -->
+                <polygon points="100,30 160,80 140,150 60,150 40,80" fill="rgba(14, 165, 233, 0.35)" stroke="#0284c7" stroke-width="2" />
+                <!-- Etiquetas de vértices -->
+                <text x="100" y="14" text-anchor="middle" font-size="8" font-weight="bold" fill="#0284c7">Power (P)</text>
+                <text x="180" y="78" text-anchor="start" font-size="8" font-weight="bold" fill="#0284c7">Endurance (E)</text>
+                <text x="150" y="177" text-anchor="middle" font-size="8" font-weight="bold" fill="#0284c7">Reps (R)</text>
+                <text x="50" y="177" text-anchor="middle" font-size="8" font-weight="bold" fill="#0284c7">Fast (F)</text>
+                <text x="20" y="78" text-anchor="end" font-size="8" font-weight="bold" fill="#0284c7">Reflejo</text>
+              </svg>
+            </div>
+            <div class="flex items-center justify-center gap-4 text-[10px] font-semibold text-slate-500">
+              <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-slate-400"></span> Basal (Sesión 1)</span>
+              <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-sky-600"></span> Actual (+35% ganancia)</span>
+            </div>
+          </div>
+
+          <!-- Gráfico 2: Curva de Descenso ICIQ-UI SF -->
+          <div class="p-4 rounded-xl border border-slate-200 dark:border-darkBg-700 bg-slate-50/70 dark:bg-darkBg-750 space-y-3">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-200/60 dark:border-darkBg-700">
+              <h5 class="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                <i class="fa-solid fa-chart-line text-teal-600"></i> Descenso ICIQ-UI SF (Incontinencia)
+              </h5>
+              <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">-65% Reducción</span>
+            </div>
+            <div class="flex items-center justify-center p-3">
+              <svg viewBox="0 0 240 120" class="w-full h-40">
+                <defs>
+                  <linearGradient id="iciqGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#0d9488" stop-opacity="0.35" />
+                    <stop offset="100%" stop-color="#0d9488" stop-opacity="0.0" />
+                  </linearGradient>
+                </defs>
+                <line x1="25" y1="20" x2="230" y2="20" stroke="#e2e8f0" stroke-width="1" class="dark:stroke-slate-700" stroke-dasharray="2 2" />
+                <line x1="25" y1="55" x2="230" y2="55" stroke="#e2e8f0" stroke-width="1" class="dark:stroke-slate-700" stroke-dasharray="2 2" />
+                <line x1="25" y1="90" x2="230" y2="90" stroke="#e2e8f0" stroke-width="1" class="dark:stroke-slate-700" />
+                <polygon points="35,25 95,50 155,75 215,85 215,90 35,90" fill="url(#iciqGrad)" />
+                <polyline points="35,25 95,50 155,75 215,85" fill="none" stroke="#0d9488" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+                <circle cx="35" cy="25" r="3.5" fill="#0d9488" />
+                <circle cx="95" cy="50" r="3.5" fill="#0d9488" />
+                <circle cx="155" cy="75" r="3.5" fill="#0d9488" />
+                <circle cx="215" cy="85" r="4" fill="#059669" />
+                <text x="35" y="105" text-anchor="middle" font-size="8" fill="#64748b">Sem 0</text>
+                <text x="95" y="105" text-anchor="middle" font-size="8" fill="#64748b">Sem 2</text>
+                <text x="155" y="105" text-anchor="middle" font-size="8" fill="#64748b">Sem 4</text>
+                <text x="215" y="105" text-anchor="middle" font-size="8" font-weight="bold" fill="#059669">Sem 6 (Hoy)</text>
+                <text x="35" y="18" text-anchor="middle" font-size="8" font-weight="bold" fill="#0f766e">18</text>
+                <text x="95" y="43" text-anchor="middle" font-size="8" font-weight="bold" fill="#0f766e">12</text>
+                <text x="155" y="68" text-anchor="middle" font-size="8" font-weight="bold" fill="#0f766e">7</text>
+                <text x="215" y="78" text-anchor="middle" font-size="9" font-weight="black" fill="#059669">4</text>
+              </svg>
+            </div>
+            <div class="text-center text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-bold">
+              De Severidad Severa (18/21) a Impacto Leve (4/21)
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- CASO E: GRILLA DE CAMPOS DINÁMICOS & WIDGETS -->
+      @else {
+        <div class="p-5 grid gap-4" [class]="getGridColumnsClass(sec.columns)">
+          @for (fld of sec.fields || []; track fld.id) {
+            <app-dynamic-field
+              [field]="fld"
+              [value]="getFieldValue(fld.id)"
+              (valueChange)="setFieldValue(fld.id, $event)"
+              [mode]="mode()"
+              [contextData]="data()">
+            </app-dynamic-field>
+          }
+        </div>
+      }
 
     </div>
   }
