@@ -196,7 +196,7 @@ export class CompanyItemsComponent implements OnInit {
     if (!confirmed) return;
 
     this.companyItemsService
-      .deleteCompanyItem(item.cmpitm_uuid, activeCmp.cmp_uuid)
+      .deleteCompanyItem(activeCmp.cmp_uuid, item.itm_uuid, item.cmpitm_uuid)
       .subscribe({
         next: () => {
           this.toast.success(`Servicio "${itemName}" desvinculado con éxito.`);
