@@ -22,6 +22,11 @@ export const APPLICATION_ROUTES: Routes = [
             (c) => c.TemplatesComponent
           ),
       },
+      {
+        path: 'items',
+        loadComponent: () =>
+          import('./items/items.component').then((c) => c.ItemsComponent),
+      },
     ],
   },
 ];
