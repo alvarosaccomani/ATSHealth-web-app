@@ -29,9 +29,17 @@ export class DynamicFieldComponent {
     return this.dynamicFormService.formatFieldValue(this.field(), this.value());
   });
 
+  readonly isVerticalRadioList = computed(() => {
+    const fld = this.field();
+    if (fld.layout === 'vertical' || fld.layout === 'stack') return true;
+    if (fld.id?.startsWith('iciq_')) return true;
+    if (fld.options && fld.options.length >= 4) return true;
+    return false;
+  });
+
   readonly colSpanClass = computed(() => {
     const type = this.field().type;
-    if (type === 'pelvis_3d_viewer' || type === 'bristol_scale' || type === 'consent_box') {
+    if (type === 'pelvis_3d_viewer' || type === 'bristol_scale' || type === 'visual_bristol' || type === 'consent_box') {
       return 'col-span-full';
     }
     const span = this.field().colSpan;

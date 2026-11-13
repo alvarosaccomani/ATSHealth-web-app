@@ -20,7 +20,7 @@
               <i class="fa-solid" [class.fa-check]="value()" [class.fa-xmark]="!value()"></i>
               <span>{{ value() ? 'Sí' : 'No' }}</span>
             </span>
-          } @else if (field().type === 'bristol_scale') {
+          } @else if (field().type === 'bristol_scale' || field().type === 'visual_bristol') {
             <span class="font-bold text-brand-600 dark:text-brand-400">Escala Bristol: Tipo {{ value() || 'No seleccionado' }}</span>
           } @else if (field().type === 'pelvis_3d_viewer') {
             <span class="italic text-slate-500">Evaluación Anatómica 3D Completada</span>
@@ -35,19 +35,21 @@
 
     <!-- MODO EDICIÓN INTERACTIVO -->
     @else {
-      <div class="flex items-center justify-between">
-        <label [for]="field().id" class="block font-semibold text-slate-700 dark:text-slate-200">
-          {{ field().label }}
-          @if (field().validation?.required) {
-            <span class="text-rose-500 font-bold">*</span>
+      @if (field().type !== 'checkbox') {
+        <div class="flex items-center justify-between">
+          <label [for]="field().id" class="block font-semibold text-slate-700 dark:text-slate-200">
+            {{ field().label }}
+            @if (field().validation?.required) {
+              <span class="text-rose-500 font-bold">*</span>
+            }
+          </label>
+          @if (field().unit) {
+            <span class="text-[10px] font-mono text-slate-400 dark:text-slate-400">
+              {{ field().unit }}
+            </span>
           }
-        </label>
-        @if (field().unit) {
-          <span class="text-[10px] font-mono text-slate-400 dark:text-slate-400">
-            {{ field().unit }}
-          </span>
-        }
-      </div>
+        </div>
+      }
 
       <!-- TEXTAREA -->
       @if (field().type === 'textarea') {
@@ -120,39 +122,93 @@
         </select>
       }
 
-      <!-- RADIO / RADIO_GROUP (BOTONES TIPO PILL) -->
+      <!-- RADIO / RADIO_GROUP (LISTA VERTICAL O BOTONES TIPO PILL) -->
       @else if (field().type === 'radio' || field().type === 'radio_group') {
-        <div class="flex flex-wrap gap-1.5">
-          @for (opt of field().options; track opt.value) {
-            <button
-              type="button"
-              (click)="onSelectOption(opt)"
-              [class.bg-brand-600]="value() === opt.value"
-              [class.text-white]="value() === opt.value"
-              [class.border-brand-600]="value() === opt.value"
-              [class.bg-white]="value() !== opt.value"
-              [class.text-slate-700]="value() !== opt.value"
-              [class.dark:bg-darkBg-750]="value() !== opt.value"
-              [class.dark:text-slate-300]="value() !== opt.value"
-              [class.border-slate-200]="value() !== opt.value"
-              [class.dark:border-darkBg-700]="value() !== opt.value"
-              class="px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all hover:border-brand-400 cursor-pointer flex items-center gap-1.5">
-              @if (opt.icon) {
-                <i [class]="'fa-solid ' + opt.icon + ' text-[11px]'"></i>
-              }
-              <span>{{ opt.label }}</span>
-              @if (opt.score !== undefined) {
-                <span class="text-[10px] px-1 rounded font-mono" [class.bg-white/20]="value() === opt.value" [class.bg-slate-100]="value() !== opt.value" [class.dark:bg-darkBg-700]="value() !== opt.value">
-                  {{ opt.score }}
-                </span>
-              }
-            </button>
-          }
-        </div>
+        @if (isVerticalRadioList()) {
+          <div class="space-y-1.5 text-slate-700 dark:text-slate-300">
+            @for (opt of field().options; track opt.value) {
+              <label
+                (click)="onSelectOption(opt)"
+                class="flex items-center justify-between p-2 rounded-xl border transition-all cursor-pointer text-xs"
+                [class.bg-brand-50]="value() === opt.value"
+                [class.dark:bg-brand-950]="value() === opt.value"
+                [class.border-brand-300]="value() === opt.value"
+                [class.dark:border-brand-800]="value() === opt.value"
+                [class.text-brand-800]="value() === opt.value"
+                [class.dark:text-brand-200]="value() === opt.value"
+                [class.border-slate-200]="value() !== opt.value"
+                [class.dark:border-darkBg-700]="value() !== opt.value"
+                [class.hover:bg-slate-50]="value() !== opt.value"
+                [class.dark:hover:bg-darkBg-750]="value() !== opt.value">
+                <div class="flex items-center gap-2.5">
+                  <input
+                    type="radio"
+                    [name]="field().id"
+                    [checked]="value() === opt.value"
+                    class="rounded-full text-brand-600 focus:ring-brand-500 cursor-pointer">
+                  <span class="font-medium">{{ opt.label }}</span>
+                </div>
+                @if (opt.score !== undefined) {
+                  <span
+                    class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded"
+                    [class.bg-brand-200]="value() === opt.value"
+                    [class.text-brand-900]="value() === opt.value"
+                    [class.bg-slate-100]="value() !== opt.value"
+                    [class.text-slate-600]="value() !== opt.value"
+                    [class.dark:bg-darkBg-700]="value() !== opt.value"
+                    [class.dark:text-slate-400]="value() !== opt.value">
+                    Score: {{ opt.score }}
+                  </span>
+                }
+              </label>
+            }
+          </div>
+        } @else {
+          <div class="flex flex-wrap gap-1.5">
+            @for (opt of field().options; track opt.value) {
+              <button
+                type="button"
+                (click)="onSelectOption(opt)"
+                [class.bg-brand-600]="value() === opt.value"
+                [class.text-white]="value() === opt.value"
+                [class.border-brand-600]="value() === opt.value"
+                [class.bg-white]="value() !== opt.value"
+                [class.text-slate-700]="value() !== opt.value"
+                [class.dark:bg-darkBg-750]="value() !== opt.value"
+                [class.dark:text-slate-300]="value() !== opt.value"
+                [class.border-slate-200]="value() !== opt.value"
+                [class.dark:border-darkBg-700]="value() !== opt.value"
+                class="px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all hover:border-brand-400 cursor-pointer flex items-center gap-1.5">
+                @if (opt.icon) {
+                  <i [class]="'fa-solid ' + opt.icon + ' text-[11px]'"></i>
+                }
+                <span>{{ opt.label }}</span>
+                @if (opt.score !== undefined) {
+                  <span class="text-[10px] px-1 rounded font-mono" [class.bg-white/20]="value() === opt.value" [class.bg-slate-100]="value() !== opt.value" [class.dark:bg-darkBg-700]="value() !== opt.value">
+                    {{ opt.score }}
+                  </span>
+                }
+              </button>
+            }
+          </div>
+        }
       }
 
-      <!-- TOGGLE / BOOLEAN / CHECKBOX -->
-      @else if (field().type === 'boolean' || field().type === 'toggle' || field().type === 'checkbox') {
+      <!-- CHECKBOX CLÍNICO COMPACTO -->
+      @else if (field().type === 'checkbox') {
+        <label [for]="field().id" class="flex items-center gap-2.5 p-2 rounded-xl bg-slate-50/70 dark:bg-darkBg-800 border border-slate-200/80 dark:border-darkBg-700 cursor-pointer text-slate-700 dark:text-slate-300 hover:bg-slate-100/70 dark:hover:bg-darkBg-750 transition-colors">
+          <input
+            type="checkbox"
+            [id]="field().id"
+            [checked]="!!value()"
+            (change)="value.set($any($event.target).checked)"
+            class="rounded text-brand-600 focus:ring-brand-500 w-4 h-4 cursor-pointer">
+          <span class="text-xs font-medium leading-snug">{{ field().label }}</span>
+        </label>
+      }
+
+      <!-- TOGGLE / BOOLEAN (SWITCH INTERACTIVO) -->
+      @else if (field().type === 'boolean' || field().type === 'toggle') {
         <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-darkBg-800 border border-slate-100 dark:border-darkBg-700">
           <span class="text-xs text-slate-600 dark:text-slate-300">
             {{ value() ? 'Confirmado / Presente' : 'No reportado / Ausente' }}
@@ -170,7 +226,7 @@
       }
 
       <!-- ESCALA BRISTOL -->
-      @else if (field().type === 'bristol_scale') {
+      @else if (field().type === 'bristol_scale' || field().type === 'visual_bristol') {
         <div class="space-y-2 pt-1">
           <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
             @for (b of bristolTypes; track b.type) {
