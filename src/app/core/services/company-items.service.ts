@@ -59,6 +59,7 @@ export class CompanyItemsService {
 
   /**
    * @description Asocia un ítem del catálogo maestro a la clínica activa.
+   * Endpoint: POST /api/company-item
    */
   assignCompanyItem(payload: AssignCompanyItemDto): Observable<CompanyItemSingleResult> {
     this.isSaving.set(true);
@@ -70,7 +71,7 @@ export class CompanyItemsService {
 
     return this.http
       .post<CompanyItemSingleResult>(
-        `${environment.apiUrl}company-items?cmp_uuid=${encodeURIComponent(payload.cmp_uuid)}`,
+        `${environment.apiUrl}company-item`,
         payload,
         { headers }
       )
@@ -102,9 +103,80 @@ export class CompanyItemsService {
   }
 
   /**
-   * @description Desvincula o elimina un servicio médico de la clínica.
+   * @description Obtiene el detalle de un ítem asignado a la empresa.
+   * Endpoint: GET /api/company-item/:cmp_uuid/:itm_uuid/:cmpitm_uuid
    */
-  deleteCompanyItem(cmpitm_uuid: string, cmp_uuid: string): Observable<SingleResult<any>> {
+  getCompanyItemById(
+    cmp_uuid: string,
+    itm_uuid: string,
+    cmpitm_uuid: string
+  ): Observable<CompanyItemSingleResult> {
+    const headers = new HttpHeaders()
+      .set('content-type', 'application/json')
+      .set('x-company-uuid', cmp_uuid);
+
+    return this.http.get<CompanyItemSingleResult>(
+      `${environment.apiUrl}company-item/${encodeURIComponent(cmp_uuid)}/${encodeURIComponent(itm_uuid)}/${encodeURIComponent(cmpitm_uuid)}`,
+      { headers }
+    );
+  }
+
+  /**
+   * @description Actualiza una asignación de ítem de empresa.
+   * Endpoint: PUT /api/company-item/:cmp_uuid/:itm_uuid/:cmpitm_uuid
+   */
+  updateCompanyItem(
+    cmp_uuid: string,
+    itm_uuid: string,
+    cmpitm_uuid: string,
+    payload: any
+  ): Observable<CompanyItemSingleResult> {
+    this.isSaving.set(true);
+    this.errorMessage.set(null);
+
+    const headers = new HttpHeaders()
+      .set('content-type', 'application/json')
+      .set('x-company-uuid', cmp_uuid);
+
+    return this.http
+      .put<CompanyItemSingleResult>(
+        `${environment.apiUrl}company-item/${encodeURIComponent(cmp_uuid)}/${encodeURIComponent(itm_uuid)}/${encodeURIComponent(cmpitm_uuid)}`,
+        payload,
+        { headers }
+      )
+      .pipe(
+        tap({
+          next: (res) => {
+            this.isSaving.set(false);
+            if (res?.data) {
+              this.companyItems.update((list) =>
+                list.map((item) =>
+                  item.cmpitm_uuid === cmpitm_uuid ? res.data : item
+                )
+              );
+            }
+          },
+          error: (err) => {
+            this.isSaving.set(false);
+            const msg =
+              err?.error?.message ||
+              err?.message ||
+              'Error al actualizar el servicio médico.';
+            this.errorMessage.set(msg);
+          },
+        })
+      );
+  }
+
+  /**
+   * @description Desvincula un servicio médico de la clínica (requiere la terna de clave primaria).
+   * Endpoint: DELETE /api/company-item/:cmp_uuid/:itm_uuid/:cmpitm_uuid
+   */
+  deleteCompanyItem(
+    cmp_uuid: string,
+    itm_uuid: string,
+    cmpitm_uuid: string
+  ): Observable<SingleResult<any>> {
     this.isSaving.set(true);
     this.errorMessage.set(null);
 
@@ -114,7 +186,7 @@ export class CompanyItemsService {
 
     return this.http
       .delete<SingleResult<any>>(
-        `${environment.apiUrl}company-items/${encodeURIComponent(cmpitm_uuid)}?cmp_uuid=${encodeURIComponent(cmp_uuid)}`,
+        `${environment.apiUrl}company-item/${encodeURIComponent(cmp_uuid)}/${encodeURIComponent(itm_uuid)}/${encodeURIComponent(cmpitm_uuid)}`,
         { headers }
       )
       .pipe(
