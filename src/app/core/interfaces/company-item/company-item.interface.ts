@@ -17,3 +17,14 @@ export interface CompanyItemInterface {
   cmpitm_createdat?: Date | string;
   cmpitm_updatedat?: Date | string;
 }
+
+/**
+ * @description DTO para vincular/asignar un ítem del catálogo maestro a la clínica.
+ */
+export interface AssignCompanyItemDto {
+  cmp_uuid: string;
+  itm_uuid: string;
+}
+
+export type CreateCompanyItemDto = AssignCompanyItemDto;
+
