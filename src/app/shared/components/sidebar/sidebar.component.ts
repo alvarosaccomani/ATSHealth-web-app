@@ -45,6 +45,12 @@ export class SidebarComponent {
       adminOnly: true,
     },
     {
+      label: 'Servicios & Prestaciones',
+      icon: 'fa-briefcase-medical',
+      route: '/admin/user/company-items',
+      adminOnly: true,
+    },
+    {
       label: 'Agenda de Turnos',
       icon: 'fa-calendar-check',
       route: '/admin/application/appointments',
