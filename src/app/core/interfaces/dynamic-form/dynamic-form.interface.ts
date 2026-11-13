@@ -54,6 +54,7 @@ export interface DynamicFieldSchema {
   defaultValue?: any;
   options?: DynamicFieldOption[];
   unit?: string;
+  layout?: 'vertical' | 'horizontal' | 'stack' | string;
   helpText?: string;
   dependsOn?: DynamicFieldDependency;
   colSpan?: number;
@@ -61,16 +62,27 @@ export interface DynamicFieldSchema {
   extraConfig?: Record<string, any>;
 }
 
+export interface DynamicTableColumn {
+  id: string;
+  label: string;
+  type?: 'text' | 'number' | 'select' | 'checkbox' | 'time' | string;
+  options?: any[];
+  width?: string;
+  unit?: string;
+}
+
 export interface DynamicSectionSchema {
   id: string;
   title: string;
   description?: string;
   icon?: string;
-  type?: string;
+  type?: 'fields' | 'score_card' | 'table_dynamic' | 'treatment_builder' | 'soap_notes' | 'file_attachment' | 'charts_dashboard' | string;
+  colorTheme?: 'pink' | 'purple' | 'teal' | 'blue' | 'emerald' | 'amber' | 'slate' | string;
   columns?: number;
   fields?: DynamicFieldSchema[];
-  tableColumns?: Array<{ id: string; label: string; type?: string; options?: any[] }>;
+  tableColumns?: DynamicTableColumn[];
   defaultRows?: any[];
+  summaryRow?: boolean;
   extraConfig?: Record<string, any>;
 }
 
