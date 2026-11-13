@@ -11,6 +11,7 @@ import { CompanyContextService } from '@services/company-context.service';
 import { AuthService } from '@services/auth.service';
 import { EncountersService } from '@services/encounters.service';
 import { TemplatesService } from '@services/templates.service';
+import { DynamicFormService } from '@services/dynamic-form.service';
 import { ToastService } from '@services/toast.service';
 import {
   CreateEncounterPayload,
@@ -47,6 +48,7 @@ export class EncounterComponent implements OnInit {
   private readonly authService = inject(AuthService);
   readonly encountersService = inject(EncountersService);
   readonly templatesService = inject(TemplatesService);
+  readonly dynamicFormService = inject(DynamicFormService);
   readonly clinicalReportService = inject(ClinicalReportService);
   private readonly toast = inject(ToastService);
 
@@ -67,16 +69,51 @@ export class EncounterComponent implements OnInit {
   readonly isLocked = computed(() => this.encountersService.activeEncounter()?.enc_status === 'SIGNED_LOCKED');
 
   readonly isPelviEval = computed(() => {
-    const code = this.templatesService.activeTemplate()?.tpl_code;
-    return !code || code === 'PELVI_EVAL';
+    const tpl = this.templatesService.activeTemplate();
+    if (!tpl) return true;
+    const code = (tpl.tpl_code || '').toUpperCase();
+    const name = (tpl.tpl_name || '').toLowerCase();
+    const schemaSpecialty = String((tpl.tpl_schema as any)?.specialty || '').toLowerCase();
+
+    return (
+      !code ||
+      code.includes('PELVI') ||
+      code.includes('PISO') ||
+      name.includes('pélvico') ||
+      name.includes('pelvico') ||
+      name.includes('pelvic') ||
+      name.includes('pelvi') ||
+      schemaSpecialty.includes('uroginec') ||
+      schemaSpecialty.includes('pelvi')
+    );
   });
 
   readonly shouldUseStaticPelviStages = computed(() => {
     return this.isPelviEval() && this.renderEngineMode() === 'legacy_static';
   });
 
+  readonly resolvedTemplateSchema = computed<DynamicTemplateSchema | null>(() => {
+    const active = this.templatesService.activeTemplate();
+    const schema = active?.tpl_schema as DynamicTemplateSchema | undefined;
+
+    // Si es PELVI_EVAL y la BD aún contiene el esquema embrionario antiguo o incompleto,
+    // usar el preset canónico completo enriquecido (4 etapas y 14 secciones clínicas)
+    if (this.isPelviEval()) {
+      const isDbSchemaComplete =
+        schema?.stages &&
+        schema.stages.length >= 4 &&
+        (schema.stages[0]?.sections?.length ?? 0) >= 5;
+
+      if (!isDbSchemaComplete) {
+        return this.templatesService.getPresetSchema('piso_pelvico').schema as DynamicTemplateSchema;
+      }
+    }
+
+    return schema || null;
+  });
+
   readonly templateStages = computed<DynamicStageSchema[]>(() => {
-    const schema = this.templatesService.activeTemplate()?.tpl_schema as DynamicTemplateSchema | undefined;
+    const schema = this.resolvedTemplateSchema();
     return schema?.stages && Array.isArray(schema.stages) ? schema.stages : [];
   });
 
@@ -102,6 +139,19 @@ export class EncounterComponent implements OnInit {
   toggleEngineMode(): void {
     const nextMode = this.renderEngineMode() === 'legacy_static' ? 'dynamic' : 'legacy_static';
     this.renderEngineMode.set(nextMode);
+
+    // Si pasamos a dinámico y no hay datos cargados, poblamos con los valores por defecto del esquema
+    if (nextMode === 'dynamic') {
+      const current = this.dynamicData();
+      if (!current || Object.keys(current).length === 0) {
+        const schema = this.resolvedTemplateSchema();
+        if (schema) {
+          const defaults = this.dynamicFormService.initializeFlatFormData(schema);
+          this.dynamicData.set(defaults);
+        }
+      }
+    }
+
     this.toast.info(
       nextMode === 'dynamic'
         ? 'Activado Motor Dinámico de Plantillas (PELVI_EVAL EHR)'
@@ -116,6 +166,16 @@ export class EncounterComponent implements OnInit {
       if (patient) {
         const bioSex = (patient.pat_biologicalsex?.toLowerCase() as BiologicalSex) || 'femenino';
         this.activeSex.set(bioSex);
+      }
+    });
+
+    // Hidrata los datos dinámicos con valores predeterminados al iniciar si están vacíos
+    effect(() => {
+      const schema = this.resolvedTemplateSchema();
+      const current = this.dynamicData();
+      if (schema && (!current || Object.keys(current).length === 0)) {
+        const defaults = this.dynamicFormService.initializeFlatFormData(schema);
+        this.dynamicData.set(defaults);
       }
     });
 
