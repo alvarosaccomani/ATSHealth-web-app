@@ -64,6 +64,12 @@ export class SidebarComponent {
       adminOnly: true,
     },
     {
+      label: 'Catálogo de Prestaciones',
+      icon: 'fa-book-medical',
+      route: '/admin/application/items',
+      adminOnly: true,
+    },
+    {
       label: 'Estadísticas & Reportes',
       icon: 'fa-chart-pie',
       route: '/admin/application/reports',
