@@ -62,6 +62,14 @@ export const USER_ROUTES: Routes = [
           ),
       },
       {
+        path: 'company-items',
+        canActivate: [adminRoleGuard, hasCompanyGuard],
+        loadComponent: () =>
+          import('./company-items/company-items.component').then(
+            (c) => c.CompanyItemsComponent
+          ),
+      },
+      {
         path: 'company-profile',
         canActivate: [adminRoleGuard],
         loadComponent: () =>
