@@ -12,6 +12,39 @@ import {
 })
 export class DynamicFormService {
   /**
+   * @description Inicializa los datos en formato plano (clave: idCampo) a partir de los valores por defecto del esquema.
+   */
+  initializeFlatFormData(schema: DynamicTemplateSchema | null): Record<string, any> {
+    if (!schema?.stages || !Array.isArray(schema.stages)) {
+      return {};
+    }
+
+    const flat: Record<string, any> = {};
+
+    for (const stage of schema.stages) {
+      if (!stage.sections || !Array.isArray(stage.sections)) continue;
+      for (const sec of stage.sections as any[]) {
+        if (sec.type === 'table_dynamic' && sec.defaultRows) {
+          flat[sec.id] = JSON.parse(JSON.stringify(sec.defaultRows));
+        }
+        if (sec.type === 'treatment_builder' && sec.standardOptions) {
+          flat['standard_modalities'] = JSON.parse(JSON.stringify(sec.standardOptions));
+        }
+        if (!sec.fields || !Array.isArray(sec.fields)) continue;
+        for (const field of sec.fields) {
+          const val = this.resolveDefaultValue(field);
+          flat[field.id] = val;
+          if (field.key && field.key !== field.id) {
+            flat[field.key] = val;
+          }
+        }
+      }
+    }
+
+    return flat;
+  }
+
+  /**
    * @description Inicializa el árbol de datos a partir de los valores predeterminados (defaultValue) del esquema.
    * @param schema Esquema dinámico de la plantilla o null.
    * @returns Diccionario estructurado por etapa y sección con los valores por defecto.
@@ -216,6 +249,74 @@ export class DynamicFormService {
     else if (score > 18) severity = 'Impacto Muy Severo';
 
     return { score, severity };
+  }
+
+  /**
+   * @description Resuelve clases de Tailwind para tematización por especialidad clínica de cada sección.
+   */
+  getThemeClasses(colorTheme?: string): { container: string; header: string; iconBg: string; iconText: string } {
+    switch (colorTheme) {
+      case 'pink':
+        return {
+          container: 'border-pink-200/80 dark:border-pink-900/50',
+          header: 'bg-pink-50/70 dark:bg-pink-950/30 border-pink-200/60 dark:border-pink-900/40 text-pink-900 dark:text-pink-200',
+          iconBg: 'bg-pink-100 dark:bg-pink-900/50 border-pink-300 dark:border-pink-800',
+          iconText: 'text-pink-700 dark:text-pink-300',
+        };
+      case 'purple':
+        return {
+          container: 'border-purple-200/80 dark:border-purple-900/50',
+          header: 'bg-purple-50/70 dark:bg-purple-950/30 border-purple-200/60 dark:border-purple-900/40 text-purple-900 dark:text-purple-200',
+          iconBg: 'bg-purple-100 dark:bg-purple-900/50 border-purple-300 dark:border-purple-800',
+          iconText: 'text-purple-700 dark:text-purple-300',
+        };
+      case 'teal':
+        return {
+          container: 'border-teal-200/80 dark:border-teal-900/50',
+          header: 'bg-teal-50/70 dark:bg-teal-950/30 border-teal-200/60 dark:border-teal-900/40 text-teal-900 dark:text-teal-200',
+          iconBg: 'bg-teal-100 dark:bg-teal-900/50 border-teal-300 dark:border-teal-800',
+          iconText: 'text-teal-700 dark:text-teal-300',
+        };
+      case 'blue':
+        return {
+          container: 'border-blue-200/80 dark:border-blue-900/50',
+          header: 'bg-blue-50/70 dark:bg-blue-950/30 border-blue-200/60 dark:border-blue-900/40 text-blue-900 dark:text-blue-200',
+          iconBg: 'bg-blue-100 dark:bg-blue-900/50 border-blue-300 dark:border-blue-800',
+          iconText: 'text-blue-700 dark:text-blue-300',
+        };
+      case 'emerald':
+        return {
+          container: 'border-emerald-200/80 dark:border-emerald-900/50',
+          header: 'bg-emerald-50/70 dark:bg-emerald-950/30 border-emerald-200/60 dark:border-emerald-900/40 text-emerald-900 dark:text-emerald-200',
+          iconBg: 'bg-emerald-100 dark:bg-emerald-900/50 border-emerald-300 dark:border-emerald-800',
+          iconText: 'text-emerald-700 dark:text-emerald-300',
+        };
+      case 'amber':
+        return {
+          container: 'border-amber-200/80 dark:border-amber-900/50',
+          header: 'bg-amber-50/70 dark:bg-amber-950/30 border-amber-200/60 dark:border-amber-900/40 text-amber-900 dark:text-amber-200',
+          iconBg: 'bg-amber-100 dark:bg-amber-900/50 border-amber-300 dark:border-amber-800',
+          iconText: 'text-amber-700 dark:text-amber-300',
+        };
+      default:
+        return {
+          container: 'border-slate-200/80 dark:border-darkBg-700',
+          header: 'bg-slate-50/70 dark:bg-darkBg-750/50 border-slate-100 dark:border-darkBg-700 text-slate-800 dark:text-slate-100',
+          iconBg: 'bg-brand-50 dark:bg-brand-950/70 border-brand-200 dark:border-brand-800',
+          iconText: 'text-brand-700 dark:text-brand-300',
+        };
+    }
+  }
+
+  /**
+   * @description Calcula totales agregados de una tabla dinámica de balance hídrico / diario miccional.
+   */
+  calculateTableTotals(rows: any[]): { totalIntake: number; totalVoid: number; totalLeaks: number } {
+    if (!Array.isArray(rows)) return { totalIntake: 0, totalVoid: 0, totalLeaks: 0 };
+    const totalIntake = rows.reduce((acc, r) => acc + (Number(r?.intakeVol) || 0), 0);
+    const totalVoid = rows.reduce((acc, r) => acc + (Number(r?.voidVol) || 0), 0);
+    const totalLeaks = rows.filter((r) => !!r?.leak).length;
+    return { totalIntake, totalVoid, totalLeaks };
   }
 
   /**
